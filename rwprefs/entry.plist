@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = RWPrefs;
+	cell = PSLinkCell;
+	detail = RWPrefsListController;
+	icon = RWPrefs.png;
+	isController = 1;
+	label = RWPrefs;
+    };
+}
