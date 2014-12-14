@@ -1,6 +1,6 @@
 {
     entry = {
-	bundle = RWPrefs;
+	bundle = ReachWeather;
 	cell = PSLinkCell;
 	detail = RWPrefsListController;
 	icon = RWPrefs.png;

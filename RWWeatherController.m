@@ -64,11 +64,11 @@
 	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
 
 	if (tweakEnabled) {
-		UIView *weatherView = [[UIView alloc] initWithFrame:CGRectMake(0,0,0,0)];
+		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 		//_weatherImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0,0,0,0)];
 		//_dateTimeLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,0,0)];
 		//_temperatureLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,0,0)];
-		_cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,0,0)];
+		_cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(15,15,[backgroundWindow frame].size.width - 15,[backgroundWindow frame].size.height - 15)];
 		//_weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,0,0)];
 
 		NSString *settingsCity;
@@ -78,9 +78,12 @@
 			settingsCity = settings[kRWCityKey];
 		}
 
-		[self fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+		[_cityLabel setText:[NSString stringWithFormat:@"%@", settingsCity]];
+		[_cityLabel sizeToFit];
+
+		/*[self fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
 			if (!error) {
-				/*
+				
 				//NSInteger cloudCover = [result[@"clouds"][@"all"] integerValue];
 				//weatherImageView
 
@@ -90,7 +93,7 @@
 			 
 			    // main
 			    CGFloat tempCurrent = [self kelvinToLocalTemp:[result[@"main"][@"temp"] doubleValue]];
-			    [_temperatureLabel setText:[NSString stringWithFormat:@"%f F",tempCurrent]];*/
+			    [_temperatureLabel setText:[NSString stringWithFormat:@"%f F",tempCurrent]];
 			 
 			    // name
 			    NSString *city = result[@"name"];
@@ -103,7 +106,7 @@
 				//[_weatherDescriptionLabel setText:conditions[0][@"description"]];
 				
 			}
-		}];
+		}];*/
 
 		//[weatherView addSubview:_weatherImageView];
 		//[weatherView addSubview:_dateTimeLabel];

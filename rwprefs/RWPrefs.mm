@@ -68,12 +68,18 @@
 - (id)getValueForSpecifier:(PSSpecifier *)specifier
 {
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-    if (settings[specifier.identifier]) {
+    if (settings[specifier.identifier] && ![specifier.identifier isEqual:kRWCityKey]) {
         NSNumber *settingEnabled = settings[specifier.identifier];
         if (settingEnabled.intValue == 1) {
             return [NSNumber numberWithBool:YES];
         } else {
             return [NSNumber numberWithBool:NO];
+        }
+    } else {
+        if ([settings[kRWCityKey] isEqualToString:@""]) {
+            return nil;
+        } else {
+            return [settings objectForKey:kRWCityKey];
         }
     }
     return [NSNumber numberWithBool:NO];
