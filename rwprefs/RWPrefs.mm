@@ -6,6 +6,7 @@
 #define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
 #define kRWEnabledKey @"tweakEnabled"
 #define kRWCityKey @"city"
+#define kRWCelsiusEnabledKey @"celsiusEnabled"
 
 @interface RWPrefsListController: PSListController {
 }
@@ -30,6 +31,16 @@
                                                                 edit:Nil];
         [enabled setIdentifier:kRWEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:@"Use Celsius?"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [celsius setIdentifier:kRWCelsiusEnabledKey];
+        [celsius setProperty:@(YES) forKey:@"enabled"];
 
         PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
         [cityField setPlaceholder:@"your city"];
@@ -56,7 +67,9 @@
         
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
+        [specifiers addObject:celsius];
         [specifiers addObject:cityField];
+        
         [specifiers addObject:secondGroup];
         [specifiers addObject:github];
         _specifiers = specifiers;

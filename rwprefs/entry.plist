@@ -1,10 +1,10 @@
 {
     entry = {
-	bundle = ReachWeather;
+	bundle = RWPrefs;
 	cell = PSLinkCell;
 	detail = RWPrefsListController;
 	icon = RWPrefs.png;
 	isController = 1;
-	label = RWPrefs;
+	label = ReachWeather;
     };
 }

@@ -37,39 +37,39 @@ static void ReloadSettingsOnStartup() {
 }
 
 %hook SBWorkspace
-/*
+
 -(void)handleReachabilityModeActivated {
 	%orig;
-	RWLog(@"CREATING REACHWEATHER VIEW AND ADDING TO REACHABILITY WINDOW");
-	SBWindow *backgroundView = MSHookIvar<SBWindow*>(self,"_reachabilityEffectWindow");
-	[[RWWeatherController sharedInstance] setupWidgetOnWindow:backgroundView];
-	RWLog(@"FINISHED CREATING REACHWEATHER VIEW AND ADDED TO REACHABILITY WINDOW");
+	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
+		RWLog(@"SETTING REACHABILITY WINDOW");
+		SBWindow *backgroundView = MSHookIvar<SBWindow*>(self,"_reachabilityEffectWindow");
+		[[RWWeatherController sharedInstance] setBackgroundWindow:backgroundView];
+		RWLog(@"REACHABILITY WINDOW SET");
+
+		RWLog(@"CREATING REACHWEATHER VIEW AND ADDING TO REACHABILITY WINDOW");
+		[[RWWeatherController sharedInstance] setupWidget];
+		RWLog(@"FINISHED CREATING REACHWEATHER VIEW AND ADDED TO REACHABILITY WINDOW");
+	}
+	
 }
 
 -(void)handleReachabilityModeDeactivated {
 	%orig;
-	RWLog(@"DECONSTRUCTING REACHWEATHER VIEW AND REMOVING FROM REACHABILITY WINDOW");
-	[[RWWeatherController sharedInstance] deconstructWidget];
-	RWLog(@"DECONSTRUCTED REACHWEATHER VIEW AND REMOVED FROM REACHABILITY WINDOW");
-}
-*/
-
--(id)init {
-	SBWorkspace *orig = %orig;
-	RWLog(@"SETTING REACHABILITY WINDOW");
-	SBWindow *backgroundView = MSHookIvar<SBWindow*>(self,"_reachabilityEffectWindow");
-	[[RWWeatherController sharedInstance] setBackgroundWindow:backgroundView];
-	RWLog(@"REACHABILITY WINDOW SET");
-	return orig;
+	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
+		RWLog(@"DECONSTRUCTING REACHWEATHER VIEW AND REMOVING FROM REACHABILITY WINDOW");
+		[[RWWeatherController sharedInstance] deconstructWidget];
+		RWLog(@"DECONSTRUCTED REACHWEATHER VIEW AND REMOVED FROM REACHABILITY WINDOW");
+	}
 }
 
 %end
 
+/*
 %hook SBReachabilityManager
 
 -(void)_handleReachabilityActivated {
 	%orig;
-	if ([%c(SBReachabilityManager) reachabilitySupported]) {
+	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
 		RWLog(@"CREATING REACHWEATHER VIEW AND ADDING TO REACHABILITY WINDOW");
 		[[RWWeatherController sharedInstance] setupWidget];
 		RWLog(@"FINISHED CREATING REACHWEATHER VIEW AND ADDED TO REACHABILITY WINDOW");
@@ -78,7 +78,7 @@ static void ReloadSettingsOnStartup() {
 
 -(void)_handleReachabilityDeactivated {
 	%orig;
-	if ([%c(SBReachabilityManager) reachabilitySupported]) {
+	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
 		RWLog(@"DECONSTRUCTING REACHWEATHER VIEW AND REMOVING FROM REACHABILITY WINDOW");
 		[[RWWeatherController sharedInstance] deconstructWidget];
 		RWLog(@"DECONSTRUCTED REACHWEATHER VIEW AND REMOVED FROM REACHABILITY WINDOW");
@@ -86,3 +86,4 @@ static void ReloadSettingsOnStartup() {
 }
 
 %end
+*/
