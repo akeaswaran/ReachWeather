@@ -8,7 +8,7 @@ include theos/makefiles/common.mk
 
 TWEAK_NAME = ReachWeather
 ReachWeather_FILES = Tweak.xm RWWeatherController.m
-ReachWeather_FRAMEWORKS = UIKit CoreGraphics MobileCoreServices SystemConfiguration Security
+ReachWeather_FRAMEWORKS = UIKit CoreGraphics
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

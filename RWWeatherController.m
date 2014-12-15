@@ -1,7 +1,5 @@
 //RWWeatherController.m
 #import "RWWeatherController.h"
-#import "External/AFNetworking/AFNetworking.h"
-#import "External/AFNetworking/AFHTTPRequestOperationManager.h"
 #import <QuartzCore/QuartzCore.h>
 #import <objc/runtime.h>
 
@@ -30,31 +28,55 @@
 	return shared;
 }
 
--(NSDateFormatter*)_dateFormatter {
-	static dispatch_once_t pred;
-	static NSDateFormatter *shared = nil;
-	 
-	dispatch_once(&pred, ^{
-		shared = [[NSDateFormatter alloc] init];
-		[shared setDateFormat:@"MMMM dd, yyyy hh:mm a"];
-	});
-	return shared;
-}
-
 -(void)setBackgroundWindow:(SBWindow*)window {
 	backgroundWindow = window;
 	RWLog(@"BACKGROUND WINDOW FRAME: %f, %f, %f, %f \n\n BACKGROUND WINDOW BOUNDS: %f, %f, %f, %f",backgroundWindow.bounds.origin.x,backgroundWindow.bounds.origin.y,backgroundWindow.bounds.size.width,backgroundWindow.bounds.size.height,[backgroundWindow frame].origin.x,[backgroundWindow frame].origin.y,[backgroundWindow frame].size.width,[backgroundWindow frame].size.height);
 }
 
 -(void)setupWidget {
-	if ([self _formattedWidget] && backgroundWindow) {
-		[backgroundWindow addSubview:[self _formattedWidget]];
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSNumber *enabledNum = settings[kRWEnabledKey];
+	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
+
+	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
+	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 1;
+
+	NSString *settingsCity;
+	if (!settings[kRWCityKey]) {
+		settingsCity = @"London";
+	} else {
+		settingsCity = settings[kRWCityKey];
+	}
+
+	if (tweakEnabled && backgroundWindow) {
+		[self _fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+			if (!error) {
+				NSInteger tempCurrent = [self kelvinToLocalTemp:[result[@"main"][@"temp"] doubleValue]];
+				if (celsiusEnabled) {
+					temperatureCondition = [NSString stringWithFormat:@"%ld\u00B0C",(long)tempCurrent];
+			    } else {
+					temperatureCondition = [NSString stringWithFormat:@"%ld\u00B0F",(long)tempCurrent];
+			    }
+
+			    NSArray *conditions = result[@"weather"];
+				currentWeatherCondition = conditions[0][@"description"];
+			} else {
+				RWLog(@"ERROR: %@",error.localizedDescription);
+				if (celsiusEnabled) {
+					temperatureCondition = @"--\u00B0C";
+			    } else {
+					temperatureCondition = @"--\u00B0F";
+			    }
+			    currentWeatherCondition = @"Error: unable to retreive current weather conditions.";
+			}
+			[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition temperature:temperatureCondition]];
+		}];
 	}
 }
 
 -(void)deconstructWidget {
-	if ([self _formattedWidget]) {
-		[[self _formattedWidget] removeFromSuperview];
+	if ([self _createdWidgetWithCurrentWeather:currentWeatherCondition temperature:temperatureCondition]) {
+		[[self _createdWidgetWithCurrentWeather:currentWeatherCondition temperature:temperatureCondition] removeFromSuperview];
 
 		_temperatureLabel = nil;
 		_cityLabel = nil;
@@ -63,16 +85,14 @@
 	}
 }
 
--(UIView*)_formattedWidget { 
+-(UIView*)_createdWidgetWithCurrentWeather:(NSString*)weather temperature:(NSString*)temperature {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = settings[kRWEnabledKey];
 	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
 
-	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 1;
-
 	if (tweakEnabled) {
+
 		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 
 		_temperatureLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder,([backgroundWindow frame].size.height / 2.0)-27.5,100.0,55.0)];
@@ -93,7 +113,7 @@
 
 		NSString *settingsCity;
 		if (!settings[kRWCityKey]) {
-			settingsCity = @"London";
+			settingsCity = @"New York";
 		} else {
 			settingsCity = settings[kRWCityKey];
 		}
@@ -101,83 +121,53 @@
 		[_cityLabel setText:settingsCity];
 		[_cityLabel sizeToFit];
 
-		if (!celsiusEnabled) {
-			[_temperatureLabel setText:@"69\u00B0F"];
-		} else {
-			[_temperatureLabel setText:@"21\u00B0C"];
-		}
+		[_temperatureLabel setText:temperature];
 		[_temperatureLabel sizeToFit];
-		[_weatherDescriptionLabel setText:@"Sunny"];
+		[_weatherDescriptionLabel setText:weather];
 		[_weatherDescriptionLabel sizeToFit];
-
-		/*
-		[self fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
-			if (!error) {
-			    // main
-			    NSInteger tempCurrent = [self kelvinToLocalTemp:[result[@"main"][@"temp"] doubleValue]];
-			    [_temperatureLabel setText:[NSString stringWithFormat:@"%i\u00B0F",tempCurrent]];
-			    [_temperatureLabel sizeToFit];
-			 
-			    // weather
-			    NSArray *conditions = result[@"weather"];
-				[_weatherDescriptionLabel setText:conditions[0][@"description"]];
-				[_weatherDescriptionLabel sizeToFit];
-				
-			} else {
-				if (!celsiusEnabled) {
-					[_temperatureLabel setText:@"69\u00B0F"];
-				} else {
-					[_temperatureLabel setText:@"21\u00B0C"];
-				}
-				[_temperatureLabel sizeToFit];
-				[_weatherDescriptionLabel setText:@"There was a problem processing your request."];
-				[_weatherDescriptionLabel sizeToFit];
-			}
-		}];
-		*/
-
-		/*
-		[_temperatureLabel.layer setBorderColor:[UIColor greenColor].CGColor];
-		[_cityLabel.layer setBorderColor:[UIColor redColor].CGColor];
-		[_weatherDescriptionLabel.layer setBorderColor:[UIColor whiteColor].CGColor];
-
-		[_temperatureLabel.layer setBorderWidth:1.0];
-		[_cityLabel.layer setBorderWidth:1.0];
-		[_weatherDescriptionLabel.layer setBorderWidth:1.0];
-		*/
 
 		[weatherView addSubview:_temperatureLabel];
 		[weatherView addSubview:_cityLabel];
 		[weatherView addSubview:_weatherDescriptionLabel];
-
 		return weatherView;
 	} else {
 		return nil;
 	}
 }
 
--(void)fetchCurrentWeatherForCity:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
+-(void)_fetchCurrentWeatherForCity:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
 	NSString *const BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
     NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=en",
                                 BASE_URL_STRING, city];
     NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
     NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];
- 
-    AFHTTPRequestOperation *operation =
-    [[objc_getClass("AFHTTPRequestOperationManager") manager] HTTPRequestOperationWithRequest:weatherRequest success:^(AFHTTPRequestOperation *operation, id responseObject) {
-    		RWLog(@"REQUEST SUCCESSFUL; ENTERING REAL DATA");
-	        NSDictionary *weatherServiceResponse = (NSDictionary *)responseObject;
-	        RWLog(@"RESPONSE OBJECT: %@",weatherServiceResponse);
-	        completionBlock(weatherServiceResponse,nil);
+
+    [NSURLConnection sendAsynchronousRequest:weatherRequest 
+                                       queue:[NSOperationQueue mainQueue]
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        if (!error && response && data) {
+	    	// Now create a NSDictionary from the JSON data
+		    NSError *jsonError;
+		    id JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+		    if (!jsonError && [JSON isKindOfClass:[NSDictionary class]]) {
+		    	dispatch_async(dispatch_get_main_queue(), ^(void){
+		    		completionBlock((NSDictionary*)JSON,nil);
+   				 });
+		    	
+	    	} else {
+	    		dispatch_async(dispatch_get_main_queue(), ^(void){
+		    		completionBlock(@{},jsonError);
+   				 });
+	    	}
+	    } else {
+	    	dispatch_async(dispatch_get_main_queue(), ^(void){
+		    	completionBlock(@{},error);
+   			});
 	    }
-	    failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-	    	RWLog(@"REQUEST FAILED; ENTERING FAKE DATA");
-	        completionBlock(@{},error);
-	    }
-     ];
- 
-    [operation start];
+    }];
+
+    
 }
 
 - (NSInteger)kelvinToLocalTemp:(CGFloat)degreesKelvin
