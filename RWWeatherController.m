@@ -7,6 +7,7 @@
 #define kRWCityKey @"city"
 #define kRWEnabledKey @"tweakEnabled"
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
+#define kRWLanguageKey @"language"
 
 #define kRWCushionBorder 15.0
 
@@ -136,10 +137,18 @@
 }
 
 -(void)_fetchCurrentWeatherForCity:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSString *settingsLang;
+	if (!settings[kRWLanguageKey]) {
+		settingsLang = @"en";
+	} else {
+		settingsLang = settings[kRWLanguageKey];
+	}
+
 	NSString *const BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
-    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=en",
-                                BASE_URL_STRING, city];
+    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@",
+                                BASE_URL_STRING, city,settingsLang];
     NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
     NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];
 

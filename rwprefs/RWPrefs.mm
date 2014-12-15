@@ -1,16 +1,12 @@
-#import <Preferences/PSListController.h>
-#import <Preferences/PSSpecifier.h>
-#import <Preferences/PSTextFieldSpecifier.h>
+
+#import "RWPrefs.h"
 #import <UIKit/UIKit.h>
 
 #define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
 #define kRWEnabledKey @"tweakEnabled"
 #define kRWCityKey @"city"
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
-
-@interface RWPrefsListController: PSListController {
-}
-@end
+#define kRWLanguageKey @"language"
 
 @implementation RWPrefsListController
 - (id)specifiers {
@@ -19,7 +15,7 @@
         
         [self setTitle:@"ReachWeather"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"ReachWeather 0.0.1"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"ReachWeather 0.1"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
@@ -41,6 +37,17 @@
                                                                 edit:Nil];
         [celsius setIdentifier:kRWCelsiusEnabledKey];
         [celsius setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:@"Language"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:[RWLanguagesListController class]
+                                                                cell:PSLinkListCell
+                                                                edit:Nil];
+        [language setIdentifier:kRWLanguageKey];
+        [language setValues:[self clientValues] titles:[self clientTitles]];
+        [language setProperty:@(YES) forKey:@"enabled"];
 
         PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
         [cityField setPlaceholder:@"your city"];
@@ -69,6 +76,7 @@
         [specifiers addObject:enabled];
         [specifiers addObject:celsius];
         [specifiers addObject:cityField];
+        [specifiers addObject:language];
         
         [specifiers addObject:secondGroup];
         [specifiers addObject:github];
@@ -81,7 +89,7 @@
 - (id)getValueForSpecifier:(PSSpecifier *)specifier
 {
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-    if (settings[specifier.identifier] && ![specifier.identifier isEqual:kRWCityKey]) {
+    if (settings[specifier.identifier] && ![specifier.identifier isEqual:kRWCityKey] && ![specifier.identifier isEqual:kRWLanguageKey]) {
         NSNumber *settingEnabled = settings[specifier.identifier];
         if (settingEnabled.intValue == 1) {
             return [NSNumber numberWithBool:YES];
@@ -89,10 +97,18 @@
             return [NSNumber numberWithBool:NO];
         }
     } else {
-        if ([settings[kRWCityKey] isEqualToString:@""]) {
-            return nil;
+        if ([specifier.identifier isEqual:kRWCityKey]) {
+            if ([settings[kRWCityKey] isEqualToString:@""]) {
+                return nil;
+            } else {
+                return [settings objectForKey:kRWCityKey];
+            }
         } else {
-            return [settings objectForKey:kRWCityKey];
+            if ([settings[kRWLanguageKey] isEqualToString:@""]) {
+                return nil;
+            } else {
+                return [settings objectForKey:kRWLanguageKey];
+            }
         }
     }
     return [NSNumber numberWithBool:NO];
@@ -112,5 +128,17 @@
 {
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran"]];
 }
+
+- (NSArray *)clientTitles {
+    return @[@"English",@"Russian",@"Italian",@"Spanish",@"Ukrainian",@"German",@"Portugese",@"Romanian",@"Polish",@"Finnish",@"Dutch",@"French",@"Bulgarian",@"Swedish",@"Chinese Traditional",@"Chinese Simplified",@"Turkish",@"Croatian",@"Catalan"];
+}
+
+- (NSArray *)clientValues {
+    return @[@"en",@"ru",@"it",@"es",@"uk",@"de",@"pt",@"ro",@"pl",@"fi",@"nl",@"fr",@"bg",@"sv",@"zh_tw",@"zh_cn",@"tr",@"hr",@"ca"];
+}
+
+@end
+
+@implementation RWLanguagesListController
 
 @end

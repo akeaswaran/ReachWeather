@@ -63,27 +63,3 @@ static void ReloadSettingsOnStartup() {
 }
 
 %end
-
-/*
-%hook SBReachabilityManager
-
--(void)_handleReachabilityActivated {
-	%orig;
-	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
-		RWLog(@"CREATING REACHWEATHER VIEW AND ADDING TO REACHABILITY WINDOW");
-		[[RWWeatherController sharedInstance] setupWidget];
-		RWLog(@"FINISHED CREATING REACHWEATHER VIEW AND ADDED TO REACHABILITY WINDOW");
-	}
-}
-
--(void)_handleReachabilityDeactivated {
-	%orig;
-	if (enabled && [%c(SBReachabilityManager) reachabilitySupported]) {
-		RWLog(@"DECONSTRUCTING REACHWEATHER VIEW AND REMOVING FROM REACHABILITY WINDOW");
-		[[RWWeatherController sharedInstance] deconstructWidget];
-		RWLog(@"DECONSTRUCTED REACHWEATHER VIEW AND REMOVED FROM REACHABILITY WINDOW");
-	}
-}
-
-%end
-*/
