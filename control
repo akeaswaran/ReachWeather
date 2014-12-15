@@ -4,6 +4,7 @@ Depends: mobilesubstrate, preferenceloader, firmware (>= 8.0)
 Version: 0.1
 Architecture: iphoneos-arm
 Description: Puts weather updates in your Reachbility view.
+Depiction: http://akeaswaran.me/repo/depictions/reachweather.html
 Maintainer: SHIVADOC <shivadoc15@gmail.com>
 Author: SHIVADOC <shivadoc15@gmail.com>
 Section: Tweaks
