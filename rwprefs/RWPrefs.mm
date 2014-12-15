@@ -7,6 +7,7 @@
 #define kRWCityKey @"city"
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
 #define kRWLanguageKey @"language"
+#define kRWDetailedViewKey @"detailedView"
 
 @implementation RWPrefsListController
 - (id)specifiers {
@@ -37,6 +38,16 @@
                                                                 edit:Nil];
         [celsius setIdentifier:kRWCelsiusEnabledKey];
         [celsius setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:@"Detailed View"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [detailedEnabled setIdentifier:kRWDetailedViewKey];
+        [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
 
         PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:@"Language"
                                                               target:self
@@ -75,6 +86,7 @@
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
         [specifiers addObject:celsius];
+        [specifiers addObject:detailedEnabled];
         [specifiers addObject:cityField];
         [specifiers addObject:language];
         

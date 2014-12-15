@@ -5,15 +5,26 @@
 
 typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 
-@interface RWWeatherController : UIViewController {
+@interface RWWeatherController : UIViewController <UIScrollViewDelegate> {
 	SBWindow *backgroundWindow;
 	NSString *currentWeatherCondition;
 	NSString *temperatureCondition;
-}
+	NSString *highTempCondition;
+	NSString *lowTempCondition;
+	NSString *pressureCondition;
+	NSString *humidityCondition;
 
-@property (strong, nonatomic) UILabel *cityLabel;
-@property (strong, nonatomic) UILabel *temperatureLabel;
-@property (strong, nonatomic) UILabel *weatherDescriptionLabel;
+	
+	UILabel *cityLabel;
+	UILabel *temperatureLabel;
+	UILabel *weatherDescriptionLabel;
+
+	UIPageControl *pageControl;
+	UILabel *highLabel;
+	UILabel *lowLabel;
+	UILabel *pressureLabel;
+	UILabel *humidityLabel;
+}
 
 +(instancetype)sharedInstance;
 -(void)setBackgroundWindow:(SBWindow*)window;
