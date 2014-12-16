@@ -34,7 +34,7 @@
 //Widget setup
 -(void)setBackgroundWindow:(SBWindow*)window {
 	backgroundWindow = window;
-	RWLog(@"BACKGROUND WINDOW FRAME: %f, %f, %f, %f \n\n BACKGROUND WINDOW BOUNDS: %f, %f, %f, %f",backgroundWindow.bounds.origin.x,backgroundWindow.bounds.origin.y,backgroundWindow.bounds.size.width,backgroundWindow.bounds.size.height,[backgroundWindow frame].origin.x,[backgroundWindow frame].origin.y,[backgroundWindow frame].size.width,[backgroundWindow frame].size.height);
+	RWLog(@"BACKGROUND WINDOW FRAME: %@ \n\n BACKGROUND WINDOW BOUNDS: %@",NSStringFromCGRect([backgroundWindow frame]),NSStringFromCGRect(backgroundWindow.bounds));
 }
 
 -(void)setupWidget {
@@ -278,7 +278,7 @@
 	NSString *const BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
     NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@",
-                                BASE_URL_STRING, city,settingsLang];
+                                BASE_URL_STRING, [city stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],settingsLang];
     NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
     NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];
 
@@ -330,6 +330,10 @@
 	CGFloat pageWidth = scrollView.frame.size.width;
     NSInteger page = floor((scrollView.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     [pageControl setCurrentPage:page];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+	[[objc_getClass("SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
 }
 
 

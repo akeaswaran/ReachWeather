@@ -6,6 +6,7 @@
 typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 
 @interface RWWeatherController : UIViewController <UIScrollViewDelegate> {
+	
 	SBWindow *backgroundWindow;
 	NSString *currentWeatherCondition;
 	NSString *temperatureCondition;
@@ -14,7 +15,6 @@ typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 	NSString *pressureCondition;
 	NSString *humidityCondition;
 
-	
 	UILabel *cityLabel;
 	UILabel *temperatureLabel;
 	UILabel *weatherDescriptionLabel;

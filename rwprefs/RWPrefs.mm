@@ -16,8 +16,7 @@
         
         [self setTitle:@"ReachWeather"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"ReachWeather 0.1"];
-        [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"ReachWeather 1.0"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
@@ -48,6 +47,18 @@
                                                                 edit:Nil];
         [detailedEnabled setIdentifier:kRWDetailedViewKey];
         [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
+        
+
+        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Customization"];
+        [secondGroup setProperty:@"Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate." forKey:@"footerText"];
+
+        PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
+        [cityField setPlaceholder:@"your city"];
+        [cityField setIdentifier:kRWCityKey];
+        [cityField setProperty:@(YES) forKey:@"enabled"];
+        [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
+               
+        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Localization"];
 
         PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:@"Language"
                                                               target:self
@@ -57,18 +68,12 @@
                                                                 cell:PSLinkListCell
                                                                 edit:Nil];
         [language setIdentifier:kRWLanguageKey];
-        [language setValues:[self clientValues] titles:[self clientTitles]];
+        [language setValues:[self languageValues] titles:[self languageTitles]];
         [language setProperty:@(YES) forKey:@"enabled"];
 
-        PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
-        [cityField setPlaceholder:@"your city"];
-        [cityField setIdentifier:kRWCityKey];
-        [cityField setProperty:@(YES) forKey:@"enabled"];
-        [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
-               
 
-        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
-        [secondGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
+        PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
+        [fourthGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
@@ -87,10 +92,14 @@
         [specifiers addObject:enabled];
         [specifiers addObject:celsius];
         [specifiers addObject:detailedEnabled];
+
+        [specifiers addObject:secondGroup];
         [specifiers addObject:cityField];
+
+        [specifiers addObject:thirdGroup];
         [specifiers addObject:language];
         
-        [specifiers addObject:secondGroup];
+        [specifiers addObject:fourthGroup];
         [specifiers addObject:github];
         _specifiers = specifiers;
     }
@@ -141,11 +150,11 @@
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran"]];
 }
 
-- (NSArray *)clientTitles {
+- (NSArray *)languageTitles {
     return @[@"English",@"Russian",@"Italian",@"Spanish",@"Ukrainian",@"German",@"Portugese",@"Romanian",@"Polish",@"Finnish",@"Dutch",@"French",@"Bulgarian",@"Swedish",@"Chinese Traditional",@"Chinese Simplified",@"Turkish",@"Croatian",@"Catalan"];
 }
 
-- (NSArray *)clientValues {
+- (NSArray *)languageValues {
     return @[@"en",@"ru",@"it",@"es",@"uk",@"de",@"pt",@"ro",@"pl",@"fi",@"nl",@"fr",@"bg",@"sv",@"zh_tw",@"zh_cn",@"tr",@"hr",@"ca"];
 }
 

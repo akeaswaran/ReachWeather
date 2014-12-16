@@ -12,12 +12,10 @@
 }
 - (void)handleReachabilityModeDeactivated;
 - (void)handleReachabilityModeActivated;
-- (id)init;
 @end
 
 @interface SBReachabilityManager
 + (id)sharedInstance;
 + (BOOL)reachabilitySupported;
-- (void)_handleReachabilityDeactivated;
-- (void)_handleReachabilityActivated;
+- (void)_setKeepAliveTimerForDuration:(CGFloat)arg1;
 @end
