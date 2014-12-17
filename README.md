@@ -1,7 +1,7 @@
 ReachWeather
 ============
 
-Puts weather updates in your Reachbility view.
+Puts weather updates in your Reachbility view. Available on the BigBoss repo.
 
 For a full rundown of features and compatibility, click [HERE](http://akeaswaran.me/repo/depictions/reachweather.html).
 

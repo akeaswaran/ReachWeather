@@ -14,7 +14,7 @@ static void ReloadSettings() {
 	NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = preferences[kRWEnabledKey];
-	enabled = enabledNum ? [enabledNum boolValue] : 1;
+	enabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	RWLog(@"RELOADSETTINGS: %@",preferences);
 }
@@ -23,7 +23,7 @@ static void ReloadSettingsOnStartup() {
     NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = preferences[kRWEnabledKey];
-	enabled = enabledNum ? [enabledNum boolValue] : 1;
+	enabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	RWLog(@"RELOADSETTINGSONSTARTUP: %@",preferences);
 }

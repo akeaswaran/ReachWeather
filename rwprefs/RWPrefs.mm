@@ -8,6 +8,7 @@
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
 #define kRWLanguageKey @"language"
 #define kRWDetailedViewKey @"detailedView"
+#define kRWManualControlKey @"manualControl"
 
 @implementation RWPrefsListController
 - (id)specifiers {
@@ -16,7 +17,8 @@
         
         [self setTitle:@"ReachWeather"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"ReachWeather 1.0"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
+        [firstGroup setProperty:@"Manual Control disables the reset timer on Reachability, keeping the view open indefinitely until you close it manually." forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
@@ -48,6 +50,15 @@
         [detailedEnabled setIdentifier:kRWDetailedViewKey];
         [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
         
+        PSSpecifier *manualControl = [PSSpecifier preferenceSpecifierNamed:@"Manual Control"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [manualControl setIdentifier:kRWManualControlKey];
+        [manualControl setProperty:@(YES) forKey:@"enabled"];
 
         PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Customization"];
         [secondGroup setProperty:@"Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate." forKey:@"footerText"];
@@ -92,6 +103,7 @@
         [specifiers addObject:enabled];
         [specifiers addObject:celsius];
         [specifiers addObject:detailedEnabled];
+        [specifiers addObject:manualControl];
 
         [specifiers addObject:secondGroup];
         [specifiers addObject:cityField];

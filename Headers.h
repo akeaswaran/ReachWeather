@@ -18,4 +18,5 @@
 + (id)sharedInstance;
 + (BOOL)reachabilitySupported;
 - (void)_setKeepAliveTimerForDuration:(CGFloat)arg1;
+- (void)disableExpirationTimerForInteraction;
 @end

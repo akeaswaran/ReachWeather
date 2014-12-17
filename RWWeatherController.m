@@ -9,6 +9,7 @@
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
 #define kRWDetailedViewKey @"detailedView"
 #define kRWLanguageKey @"language"
+#define kRWManualControlKey @"manualControl"
 
 #define kRWCushionBorder 15.0
 
@@ -40,13 +41,16 @@
 -(void)setupWidget {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
+	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 1;
+	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
 
 	NSNumber *detailNum = settings[kRWDetailedViewKey];
-	BOOL detailEnabled = detailNum ? [detailNum boolValue] : 1;
+	BOOL detailEnabled = detailNum ? [detailNum boolValue] : 0;
+
+	NSNumber *manualControlNum = settings[kRWManualControlKey];
+	BOOL mcEnabled = manualControlNum ? [manualControlNum boolValue] : 0;
 
 	NSString *settingsCity;
 	if (!settings[kRWCityKey]) {
@@ -54,6 +58,7 @@
 	} else {
 		settingsCity = settings[kRWCityKey];
 	}
+
 
 	if (enabledNum && tweakEnabled && backgroundWindow) {
 		[self _fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
@@ -105,6 +110,11 @@
 			} else {
 				[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]];
 			}
+
+			if(mcEnabled) {
+				RWLog(@"MANUAL CONTROL ACTIVATED");
+				[[objc_getClass("SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
+			}
 		}];
 	}
 }
@@ -142,7 +152,7 @@
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
+	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	if (enabledNum && tweakEnabled) {
 		UIView *weatherView = [self _createdWidgetWithCurrentWeather:weather currentTemperature:temperature];
@@ -219,7 +229,7 @@
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 1;
+	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	if (enabledNum && tweakEnabled) {
 		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
@@ -313,7 +323,7 @@
 {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 1;
+	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
 
 	NSNumber *temp;
     if (!celsiusEnabled) {
@@ -333,8 +343,13 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-	[[objc_getClass("SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
-}
-
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSNumber *manualControlNum = settings[kRWManualControlKey];
+	BOOL mcEnabled = manualControlNum ? [manualControlNum boolValue] : 0;
+	if (!mcEnabled) {
+		RWLog(@"AUTO CONTROL ACTIVE");
+		[[objc_getClass("SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
+	}
+ }
 
 @end
