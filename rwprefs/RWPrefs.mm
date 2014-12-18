@@ -9,6 +9,7 @@
 #define kRWLanguageKey @"language"
 #define kRWDetailedViewKey @"detailedView"
 #define kRWManualControlKey @"manualControl"
+#define kRWClockViewKey @"clockView"
 
 @implementation RWPrefsListController
 - (id)specifiers {
@@ -17,7 +18,7 @@
         
         [self setTitle:@"ReachWeather"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Tweak Options"];
         [firstGroup setProperty:@"Manual Control disables the reset timer on Reachability, keeping the view open indefinitely until you close it manually." forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
@@ -29,28 +30,8 @@
                                                                 edit:Nil];
         [enabled setIdentifier:kRWEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
-
-        PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:@"Use Celsius?"
-                                                              target:self
-                                                                 set:@selector(setValue:forSpecifier:)
-                                                                 get:@selector(getValueForSpecifier:)
-                                                              detail:Nil
-                                                                cell:PSSwitchCell
-                                                                edit:Nil];
-        [celsius setIdentifier:kRWCelsiusEnabledKey];
-        [celsius setProperty:@(YES) forKey:@"enabled"];
-
-        PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:@"Detailed View"
-                                                              target:self
-                                                                 set:@selector(setValue:forSpecifier:)
-                                                                 get:@selector(getValueForSpecifier:)
-                                                              detail:Nil
-                                                                cell:PSSwitchCell
-                                                                edit:Nil];
-        [detailedEnabled setIdentifier:kRWDetailedViewKey];
-        [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
         
-        PSSpecifier *manualControl = [PSSpecifier preferenceSpecifierNamed:@"Manual Control"
+        PSSpecifier *manualControl = [PSSpecifier preferenceSpecifierNamed:@"Manual Reachability Control"
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -61,15 +42,46 @@
         [manualControl setProperty:@(YES) forKey:@"enabled"];
 
         PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Customization"];
-        [secondGroup setProperty:@"Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate." forKey:@"footerText"];
+        [secondGroup setProperty:@"Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate. \n\nYou can even include your country as well for more accurate weather data! After the name of the city, add a comma, then a space, and then the name of the country (EX: Sydney, Australia). " forKey:@"footerText"];
 
         PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
         [cityField setPlaceholder:@"your city"];
         [cityField setIdentifier:kRWCityKey];
         [cityField setProperty:@(YES) forKey:@"enabled"];
         [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
+
+        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"UI Options"];
+        PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Detailed Weather View"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [detailedEnabled setIdentifier:kRWDetailedViewKey];
+        [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *clockEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Clock Page"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [clockEnabled setIdentifier:kRWClockViewKey];
+        [clockEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:@"Use Celsius?"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [celsius setIdentifier:kRWCelsiusEnabledKey];
+        [celsius setProperty:@(YES) forKey:@"enabled"];
                
-        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Localization"];
+        PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:@"Localization"];
 
         PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:@"Language"
                                                               target:self
@@ -83,8 +95,8 @@
         [language setProperty:@(YES) forKey:@"enabled"];
 
 
-        PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
-        [fourthGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
+        PSSpecifier *fifthGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
+        [fifthGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
@@ -101,18 +113,22 @@
         
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
-        [specifiers addObject:celsius];
-        [specifiers addObject:detailedEnabled];
         [specifiers addObject:manualControl];
 
         [specifiers addObject:secondGroup];
         [specifiers addObject:cityField];
 
         [specifiers addObject:thirdGroup];
+        [specifiers addObject:clockEnabled];
+        [specifiers addObject:detailedEnabled];
+        [specifiers addObject:celsius];
+
+        [specifiers addObject:fourthGroup];
         [specifiers addObject:language];
         
-        [specifiers addObject:fourthGroup];
+        [specifiers addObject:fifthGroup];
         [specifiers addObject:github];
+
         _specifiers = specifiers;
     }
     

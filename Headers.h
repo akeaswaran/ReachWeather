@@ -1,5 +1,6 @@
 //Headers.h
 
+//SpringBoard
 @interface SBWindow
 @property(readonly) CGRect bounds;
 - (CGRect)frame;

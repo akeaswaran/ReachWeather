@@ -10,6 +10,7 @@
 #define kRWDetailedViewKey @"detailedView"
 #define kRWLanguageKey @"language"
 #define kRWManualControlKey @"manualControl"
+#define kRWClockViewKey @"clockView"
 
 #define kRWCushionBorder 15.0
 
@@ -32,6 +33,17 @@
 	return shared;
 }
 
+-(NSDateFormatter*)sharedDateFormatter {
+	static dispatch_once_t pred;
+	static NSDateFormatter *shared = nil;
+	 
+	dispatch_once(&pred, ^{
+		shared = [[NSDateFormatter alloc] init];
+		[shared setDateFormat:@"hh:mm a"];
+	});
+	return shared;
+}
+
 //Widget setup
 -(void)setBackgroundWindow:(SBWindow*)window {
 	backgroundWindow = window;
@@ -46,9 +58,6 @@
 	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
 	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
 
-	NSNumber *detailNum = settings[kRWDetailedViewKey];
-	BOOL detailEnabled = detailNum ? [detailNum boolValue] : 0;
-
 	NSNumber *manualControlNum = settings[kRWManualControlKey];
 	BOOL mcEnabled = manualControlNum ? [manualControlNum boolValue] : 0;
 
@@ -61,7 +70,7 @@
 
 
 	if (enabledNum && tweakEnabled && backgroundWindow) {
-		[self _fetchCurrentWeatherForCity:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+		[self _fetchCurrentWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
 			if (!error) {
 				NSInteger tempCurrent = [self kelvinToLocalTemp:[result[@"main"][@"temp"] doubleValue]];
 				if (celsiusEnabled) {
@@ -105,11 +114,14 @@
 				pressureCondition = @"-- mb";
 				humidityCondition = @"--%";
 			}
+			/*
 			if (!detailEnabled || !detailNum) {
 				[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]];
 			} else {
 				[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]];
-			}
+			}*/
+
+			[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]];
 
 			if(mcEnabled) {
 				RWLog(@"MANUAL CONTROL ACTIVATED");
@@ -120,13 +132,13 @@
 }
 
 -(void)deconstructWidget {
-	if ([self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]) {
-		[[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition] removeFromSuperview];
+	if ([self _createdWeatherViewWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]) {
+		[[self _createdWeatherViewWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition] removeFromSuperview];
 	}
 
-	if ([self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]) {
+	if ([self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]) {
 
-		[[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition] removeFromSuperview];
+		[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition];
 	}
 
 	temperatureCondition = nil;
@@ -145,60 +157,59 @@
 	lowLabel = nil;
 	pressureLabel = nil;
 	humidityLabel = nil;
+
+	timeLabel = nil;
+
+	if(dateTimer) {
+		[dateTimer invalidate];
+		dateTimer = nil;
+	}
 }
 
 //UI creation
--(UIView*)_createdWidgetWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature highTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity {
+-(UIView*)_createdFullFeaturedWidgetWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature highTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-
 	NSNumber *enabledNum = settings[kRWEnabledKey];
 	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
 
-	if (enabledNum && tweakEnabled) {
-		UIView *weatherView = [self _createdWidgetWithCurrentWeather:weather currentTemperature:temperature];
+	NSNumber *clockNum = settings[kRWClockViewKey];
+	BOOL clockEnabled = clockNum ? [clockNum boolValue] : 0;
+
+	NSNumber *detailNum = settings[kRWDetailedViewKey];
+	BOOL detailEnabled = detailNum ? [detailNum boolValue] : 0;
+
+	NSMutableArray *views = [NSMutableArray array];
+	if (tweakEnabled) {
+		if (clockEnabled)
+		{
+			[views addObject:[self _createdClockView]];
+		}
+
+		[views addObject:[self _createdWeatherViewWithCurrentWeather:weather currentTemperature:temperature]];
+
+		if (detailEnabled) {
+			[views addObject:[self _createdDetailedViewWithHighTemp:highTemp lowTemp:lowTemp pressure:pressure humidity:humidity]];
+		}
+	} else {
+		return nil;
+	}
+
+	if (views.count == 1) {
+		return views[0];
+	} else {
 		UIView *wrapperView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 		UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:wrapperView.frame];
 
-		UIView *detailedView = [[UIView alloc] initWithFrame:scrollView.frame];
+		for (int i = 0; i < views.count; i++) {
+			UIView *curView = views[i];
+			CGRect frame = curView.frame;
+	    	frame.origin.x = curView.frame.size.width * i;
+	   		curView.frame = frame;
 
-		highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,cityLabel.frame.origin.y - 25.0,wrapperView.frame.size.width,25.0)];
-		lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
-		pressureLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,lowLabel.frame.origin.y + lowLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
-		humidityLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,pressureLabel.frame.origin.y + pressureLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
+	   		[scrollView addSubview:curView];
+		}
 
-		[highLabel setTextAlignment:NSTextAlignmentCenter];
-		[highLabel setFont:[UIFont systemFontOfSize:20.0]];
-		[highLabel setTextColor:[UIColor whiteColor]];
-		[highLabel setText:highTemp];
-
-		[lowLabel setTextAlignment:NSTextAlignmentCenter];
-		[lowLabel setFont:[UIFont systemFontOfSize:20.0]];
-		[lowLabel setTextColor:[UIColor whiteColor]];
-		[lowLabel setText:lowTemp];
-
-		[pressureLabel setTextAlignment:NSTextAlignmentCenter];
-		[pressureLabel setFont:[UIFont systemFontOfSize:20.0]];
-		[pressureLabel setTextColor:[UIColor whiteColor]];
-		[pressureLabel setText:pressure];
-
-		[humidityLabel setTextAlignment:NSTextAlignmentCenter];
-		[humidityLabel setFont:[UIFont systemFontOfSize:20.0]];
-		[humidityLabel setTextColor:[UIColor whiteColor]];
-		[humidityLabel setText:humidity];
-
-		[detailedView addSubview:highLabel];
-		[detailedView addSubview:lowLabel];
-		[detailedView addSubview:pressureLabel];
-		[detailedView addSubview:humidityLabel];
-
-		CGRect frame = detailedView.frame;
-	    frame.origin.x = detailedView.frame.size.width;
-	    detailedView.frame = frame;
-
-	    [scrollView addSubview:weatherView];
-	    [scrollView addSubview:detailedView];
-
-	    scrollView.contentSize = CGSizeMake(wrapperView.frame.size.width * 2.0,scrollView.frame.size.height);
+	    scrollView.contentSize = CGSizeMake(wrapperView.frame.size.width * views.count,scrollView.frame.size.height);
 	    [scrollView setScrollEnabled:YES];
 	    [scrollView setPagingEnabled:YES];
 	    [scrollView setUserInteractionEnabled:YES];
@@ -211,21 +222,67 @@
 		[wrapperView addSubview:scrollView];
 
 		pageControl = [[UIPageControl alloc] init];
-		[pageControl setNumberOfPages:2];
+		[pageControl setNumberOfPages:views.count];
 		CGRect pageFrame = pageControl.frame;
 		pageFrame.origin.x = (wrapperView.frame.size.width / 2.0) - (pageFrame.size.width / 2.0);
 		pageFrame.origin.y = wrapperView.frame.size.height - pageFrame.size.height - kRWCushionBorder;
 		pageControl.frame = pageFrame;
 		[wrapperView addSubview:pageControl];
-
 		return wrapperView;
-		
-	} else {
-		return nil;
 	}
+
 }
 
--(UIView*)_createdWidgetWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {
+-(UIView*)_createdClockView {
+	UIView *wrapperView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
+	timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder,kRWCushionBorder,wrapperView.frame.size.width - kRWCushionBorder - kRWCushionBorder,wrapperView.frame.size.height - kRWCushionBorder - kRWCushionBorder)];
+	[timeLabel setFont:[UIFont systemFontOfSize:60.0]];
+	[timeLabel setTextColor:[UIColor whiteColor]];
+	[timeLabel setTextAlignment:NSTextAlignmentCenter];
+	[timeLabel setText:[self currentDateAsLocalizedString]];
+	dateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateTime:) userInfo:nil repeats:YES];
+	[wrapperView addSubview:timeLabel];
+
+	return wrapperView;
+}
+
+-(UIView*)_createdDetailedViewWithHighTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity {
+	UIView *detailedView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
+
+	highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,cityLabel.frame.origin.y - 25.0,detailedView.frame.size.width,25.0)];
+	lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
+	pressureLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,lowLabel.frame.origin.y + lowLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
+	humidityLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,pressureLabel.frame.origin.y + pressureLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
+
+	[highLabel setTextAlignment:NSTextAlignmentCenter];
+	[highLabel setFont:[UIFont systemFontOfSize:20.0]];
+	[highLabel setTextColor:[UIColor whiteColor]];
+	[highLabel setText:highTemp];
+
+	[lowLabel setTextAlignment:NSTextAlignmentCenter];
+	[lowLabel setFont:[UIFont systemFontOfSize:20.0]];
+	[lowLabel setTextColor:[UIColor whiteColor]];
+	[lowLabel setText:lowTemp];
+
+	[pressureLabel setTextAlignment:NSTextAlignmentCenter];
+	[pressureLabel setFont:[UIFont systemFontOfSize:20.0]];
+	[pressureLabel setTextColor:[UIColor whiteColor]];
+	[pressureLabel setText:pressure];
+
+	[humidityLabel setTextAlignment:NSTextAlignmentCenter];
+	[humidityLabel setFont:[UIFont systemFontOfSize:20.0]];
+	[humidityLabel setTextColor:[UIColor whiteColor]];
+	[humidityLabel setText:humidity];
+
+	[detailedView addSubview:highLabel];
+	[detailedView addSubview:lowLabel];
+	[detailedView addSubview:pressureLabel];
+	[detailedView addSubview:humidityLabel];
+
+	return detailedView;
+}
+
+-(UIView*)_createdWeatherViewWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = settings[kRWEnabledKey];
@@ -276,7 +333,7 @@
 }
 
 //Helper methods
--(void)_fetchCurrentWeatherForCity:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
+-(void)_fetchCurrentWeatherForCityNamed:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsLang;
 	if (!settings[kRWLanguageKey]) {
@@ -314,9 +371,7 @@
 		    	completionBlock(@{},error);
    			});
 	    }
-    }];
-
-    
+    }]; 
 }
 
 - (NSInteger)kelvinToLocalTemp:(CGFloat)degreesKelvin
@@ -335,6 +390,22 @@
     return [temp integerValue];
 }
 
+-(NSString*)currentDateAsLocalizedString {
+	NSCalendar *calendar = [NSCalendar autoupdatingCurrentCalendar];
+	NSDateComponents *timeComponents = [calendar components:( NSCalendarUnitHour | NSCalendarUnitMinute) fromDate:[NSDate date]];
+
+	NSDateComponents *comps = [[NSDateComponents alloc] init];
+	[comps setHour:[timeComponents hour]];
+	[comps setMinute:[timeComponents minute]];
+	NSDate* date = [calendar dateFromComponents:comps];
+	return [NSDateFormatter localizedStringFromDate:date dateStyle:NSDateFormatterNoStyle timeStyle:NSDateFormatterShortStyle];
+}
+
+-(void)updateTime:(id)sender {
+	NSString *currentTime = [self currentDateAsLocalizedString];
+  	timeLabel.text = currentTime;
+}
+
 //UIScrollViewDelegate
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
 	CGFloat pageWidth = scrollView.frame.size.width;
@@ -349,6 +420,9 @@
 	if (!mcEnabled) {
 		RWLog(@"AUTO CONTROL ACTIVE");
 		[[objc_getClass("SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
+	} else {
+		RWLog(@"MANUAL CONTROL ACTIVE");
+		[[objc_getClass("SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
 	}
  }
 

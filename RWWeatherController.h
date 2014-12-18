@@ -24,6 +24,9 @@ typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 	UILabel *lowLabel;
 	UILabel *pressureLabel;
 	UILabel *humidityLabel;
+
+	UILabel *timeLabel;
+	NSTimer *dateTimer;
 }
 
 +(instancetype)sharedInstance;

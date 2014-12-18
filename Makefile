@@ -1,7 +1,7 @@
 TARGET_IPHONEOS_DEPLOYMENT_VERSION = 8.1
 ARCHS = armv7 arm64
 THEOS_BUILD_DIR = debs
-DEBUG = 0
+DEBUG = 1
 ADDITIONAL_OBJCFLAGS = -fobjc-arc
 
 include theos/makefiles/common.mk
