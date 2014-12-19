@@ -29,7 +29,10 @@ typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 	NSTimer *dateTimer;
 }
 
-+(instancetype)sharedInstance;
++ (instancetype)sharedInstance;
++ (BOOL)isActivatorInstalled;
+
+-(void)activateWidgetArea;
 -(void)setBackgroundWindow:(SBWindow*)window;
 -(void)setupWidget;
 -(void)deconstructWidget;

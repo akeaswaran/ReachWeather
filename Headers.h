@@ -18,6 +18,9 @@
 @interface SBReachabilityManager
 + (id)sharedInstance;
 + (BOOL)reachabilitySupported;
+- (void)_handleReachabilityDeactivated;
+- (void)_handleReachabilityActivated;
 - (void)_setKeepAliveTimerForDuration:(CGFloat)arg1;
 - (void)disableExpirationTimerForInteraction;
+@property(readonly, nonatomic) BOOL reachabilityModeActive;
 @end

@@ -1,4 +1,7 @@
 #import "RWWeatherController.h"
+#import "RWActivatorListener.h"
+#import <libactivator/libactivator.h>
+
 #define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
 #define kRWEnabledKey @"tweakEnabled"
 
@@ -33,6 +36,22 @@ static void ReloadSettingsOnStartup() {
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("me.akeaswaran.reachweather/ReloadSettings"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 	ReloadSettingsOnStartup();
+
+	if ([RWWeatherController isActivatorInstalled]) {
+		RWLog(@"ACTIVATOR EXISTS - ENABLING SUPPORT");
+
+		dlopen("/usr/lib/libactivator.dylib", RTLD_LAZY);
+		Class la = %c(LAActivator);
+		if (la) { //libactivator is installed
+			RWLog(@"ACTIVATOR INSTALLED - SUPPORT ENABLED");
+			// register our listener. do this after the above so it still hasn't "seen" us if this is first launch
+			[[%c(LAActivator) sharedInstance] registerListener:[RWActivatorListener sharedListener] forName:@"me.akeaswaran.reachweather"];
+		} else {  //libactivator is not installed
+			RWLog(@"ACTIVATOR NOT INSTALLED - SUPPORT DISABLED");
+		}
+	} else {
+		RWLog(@"ACTIVATOR DOES NOT EXIST - DISABLING SUPPORT");
+	}
     
 }
 

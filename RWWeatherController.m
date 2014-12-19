@@ -33,15 +33,12 @@
 	return shared;
 }
 
--(NSDateFormatter*)sharedDateFormatter {
-	static dispatch_once_t pred;
-	static NSDateFormatter *shared = nil;
-	 
-	dispatch_once(&pred, ^{
-		shared = [[NSDateFormatter alloc] init];
-		[shared setDateFormat:@"hh:mm a"];
-	});
-	return shared;
+-(void)activateWidgetArea {
+	if (![[objc_getClass("SBReachabilityManager") sharedInstance] reachabilityModeActive]) {
+		[[objc_getClass("SBReachabilityManager") sharedInstance] _handleReachabilityActivated];
+	} else {
+		[[objc_getClass("SBReachabilityManager") sharedInstance] _handleReachabilityDeactivated];
+	}
 }
 
 //Widget setup
@@ -70,56 +67,33 @@
 
 
 	if (enabledNum && tweakEnabled && backgroundWindow) {
-		[self _fetchCurrentWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+		[self _fetchDetailedWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
 			if (!error) {
-				NSInteger tempCurrent = [self kelvinToLocalTemp:[result[@"main"][@"temp"] doubleValue]];
-				if (celsiusEnabled) {
-					temperatureCondition = [NSString stringWithFormat:@"%ld\u00B0C",(long)tempCurrent];
-			    } else {
-					temperatureCondition = [NSString stringWithFormat:@"%ld\u00B0F",(long)tempCurrent];
-			    }
+			   	temperatureCondition = result[@"currentTemp"];
 
-			    NSArray *conditions = result[@"weather"];
-				currentWeatherCondition = conditions[0][@"description"];
+				currentWeatherCondition = result[@"currentWeather"];
 
-				NSInteger highTemp = [self kelvinToLocalTemp:[result[@"main"][@"temp_max"] doubleValue]];
-				NSInteger lowTemp = [self kelvinToLocalTemp:[result[@"main"][@"temp_min"] doubleValue]];
+				highTempCondition = result[@"currentHigh"];
+				lowTempCondition = result[@"currentLow"];
 
-				if (celsiusEnabled) {
-					highTempCondition = [NSString stringWithFormat:@"High: %ld\u00B0C",(long)highTemp];
-					lowTempCondition = [NSString stringWithFormat:@"Low: %ld\u00B0C",(long)lowTemp];
-			    } else {
-					highTempCondition = [NSString stringWithFormat:@"High: %ld\u00B0F",(long)highTemp];
-					lowTempCondition = [NSString stringWithFormat:@"Low: %ld\u00B0F",(long)lowTemp];
-			    }
-
-			   	NSNumber *pressure = [NSNumber numberWithDouble:[result[@"main"][@"pressure"] doubleValue]];
-			   	pressureCondition = [NSString stringWithFormat:@"Pressure: %ld mb",(long)[pressure integerValue]];
-
-			   	NSNumber *humidity = [NSNumber numberWithDouble:[result[@"main"][@"humidity"] doubleValue]];
-			   	humidityCondition = [NSString stringWithFormat:@"Humidity: %ld%%",(long)[humidity integerValue]];
+				pressureCondition = result[@"currentPressure"];
+				humidityCondition = result[@"currentHumidity"];
 
 			} else {
 				RWLog(@"ERROR: %@",error.localizedDescription);
 				if (celsiusEnabled) {
 					temperatureCondition = @"--\u00B0C";
-					highTempCondition = @"--\u00B0C";
-					lowTempCondition = @"--\u00B0C";
+					highTempCondition = @"High: --\u00B0C";
+					lowTempCondition = @"Low: --\u00B0C";
 			    } else {
 					temperatureCondition = @"--\u00B0F";
-					highTempCondition = @"--\u00B0F";
-					lowTempCondition = @"--\u00B0F";
+					highTempCondition = @"High: --\u00B0F";
+					lowTempCondition = @"Low: --\u00B0F";
 			    }
 			    currentWeatherCondition = @"Error: unable to retreive current weather conditions.";
-				pressureCondition = @"-- mb";
-				humidityCondition = @"--%";
+				pressureCondition = @"Pressure: -- mb";
+				humidityCondition = @"Humidity: --%";
 			}
-			/*
-			if (!detailEnabled || !detailNum) {
-				[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]];
-			} else {
-				[backgroundWindow addSubview:[self _createdWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]];
-			}*/
 
 			[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition]];
 
@@ -295,17 +269,15 @@
 		[temperatureLabel setTextAlignment:NSTextAlignmentLeft];
 		[temperatureLabel setFont:[UIFont systemFontOfSize:44.0]];
 		[temperatureLabel setTextColor:[UIColor whiteColor]];
+		[temperatureLabel setText:temperature];
+		[temperatureLabel sizeToFit];
 
-		cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder + temperatureLabel.frame.size.width + 10.0,temperatureLabel.frame.origin.y,[backgroundWindow frame].size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width,30.0)];
+		cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder + temperatureLabel.frame.size.width + 10.0,temperatureLabel.frame.origin.y,[backgroundWindow frame].size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width - kRWCushionBorder,32.0)];
 		[cityLabel setTextAlignment:NSTextAlignmentLeft];
 		[cityLabel setFont:[UIFont systemFontOfSize:28.0]];
 		[cityLabel setTextColor:[UIColor whiteColor]];
-
-		weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(cityLabel.frame.origin.x,cityLabel.frame.origin.y + cityLabel.frame.size.height + 4.0,cityLabel.frame.size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width,20.0)];
-		[weatherDescriptionLabel setTextAlignment:NSTextAlignmentLeft];
-		[weatherDescriptionLabel setNumberOfLines:0];
-		[weatherDescriptionLabel setFont:[UIFont systemFontOfSize:15.0]];
-		[weatherDescriptionLabel setTextColor:[UIColor lightGrayColor]];
+		[cityLabel setMinimumScaleFactor:0.50];
+		[cityLabel setAdjustsFontSizeToFitWidth:YES];
 
 		NSString *settingsCity;
 		if (!settings[kRWCityKey]) {
@@ -314,11 +286,14 @@
 			settingsCity = settings[kRWCityKey];
 		}
 
-		[cityLabel setText:settingsCity];
-		[cityLabel sizeToFit];
+		weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(cityLabel.frame.origin.x,cityLabel.frame.origin.y + cityLabel.frame.size.height + 4.0,cityLabel.frame.size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width,20.0)];
+		[weatherDescriptionLabel setTextAlignment:NSTextAlignmentLeft];
+		[weatherDescriptionLabel setNumberOfLines:0];
+		[weatherDescriptionLabel setFont:[UIFont systemFontOfSize:15.0]];
+		[weatherDescriptionLabel setTextColor:[UIColor lightGrayColor]];
 
-		[temperatureLabel setText:temperature];
-		[temperatureLabel sizeToFit];
+		[cityLabel setText:settingsCity];
+
 		[weatherDescriptionLabel setText:weather];
 		[weatherDescriptionLabel sizeToFit];
 
@@ -333,6 +308,108 @@
 }
 
 //Helper methods
+-(void)_fetchDetailedWeatherForCityNamed:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSString *settingsLang;
+	if (!settings[kRWLanguageKey]) {
+		settingsLang = @"en";
+	} else {
+		settingsLang = settings[kRWLanguageKey];
+	}
+
+	NSString *settingsCity;
+	if (!settings[kRWCityKey]) {
+		settingsCity = @"New York";
+	} else {
+		settingsCity = settings[kRWCityKey];
+	}
+
+	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
+	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
+
+	NSMutableDictionary *dataDictionary = [[NSMutableDictionary alloc] init];
+
+	[self _fetchCurrentWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+		if (!error && result != nil) {
+			RWLog(@"DATADICTIONARY INITIALIZED, ABOUT TO ADD RESULT FROM CURRENTWEATHER");
+			[dataDictionary addEntriesFromDictionary:result];
+			RWLog(@"DATADICTIONARY FROM CURRENTWEATHER: %@",dataDictionary);
+
+			NSString * BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/forecast/daily";
+ 
+		    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@&cnt=1&mode=json",
+		                                BASE_URL_STRING, [city stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],settingsLang];
+		    NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
+		    NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];
+
+		    [NSURLConnection sendAsynchronousRequest:weatherRequest 
+		                                       queue:[NSOperationQueue mainQueue]
+		                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+		        if (!error && response && data) {
+		        	RWLog(@"RECIEVED DETAILED WEATHER PARSABLE RESPONSE");
+			    	// Now create a NSDictionary from the JSON data
+				    NSError *jsonError;
+				    id JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+				    if (!jsonError && [JSON isKindOfClass:[NSDictionary class]]) {
+				    	dispatch_async(dispatch_get_main_queue(), ^(void){
+				    		NSDictionary *jsonDict = (NSDictionary*)JSON;
+				    		NSNumber *code = jsonDict[@"cod"];
+				    		RWLog(@"JSON DETAILED WEATHER DICT: %@, CODE: %@",jsonDict,code);
+				    		if (code.intValue != 404) {
+
+					    		NSArray *items = jsonDict[@"list"];
+					    		NSDictionary *dayData = items[0];
+
+					    		NSString *curHigh;
+					    		NSString *curLow;
+
+					    		NSInteger highTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"day"] doubleValue]];
+								NSInteger lowTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"night"] doubleValue]];
+
+								if (celsiusEnabled) {
+									curHigh = [NSString stringWithFormat:@"High: %ld\u00B0C",(long)highTemp];
+									curLow = [NSString stringWithFormat:@"Low: %ld\u00B0C",(long)lowTemp];
+							    } else {
+									curHigh = [NSString stringWithFormat:@"High: %ld\u00B0F",(long)highTemp];
+									curLow = [NSString stringWithFormat:@"Low: %ld\u00B0F",(long)lowTemp];
+							    }
+
+					    		[dataDictionary setObject:curHigh forKey:@"currentHigh"];
+					    		[dataDictionary setObject:curLow forKey:@"currentLow"];
+
+					    		RWLog(@"DATA DICTIONARY GOING TO CALLBACK: %@",dataDictionary);
+
+					    		completionBlock(dataDictionary,nil);
+				    		} else {
+				    			NSDictionary *userInfo = @{
+								  NSLocalizedDescriptionKey: NSLocalizedString(@"Current weather for city not found.", nil),
+								                          };
+								NSError *error = [NSError errorWithDomain:@"me.akeaswaran.reachweather.error"
+		                                     code:404
+		                                 userInfo:userInfo];
+				    			completionBlock(nil,error);
+				    		}
+				    	});
+				    	
+			    	} else {
+			    		dispatch_async(dispatch_get_main_queue(), ^(void){
+				    		completionBlock(nil,jsonError);
+		   				 });
+			    	}
+			    } else {
+			    	dispatch_async(dispatch_get_main_queue(), ^(void){
+				    	completionBlock(nil,error);
+		   			});
+			    }
+		    }]; 
+		} else {
+			dispatch_async(dispatch_get_main_queue(), ^(void){
+		    	completionBlock(nil,error);
+   			});
+		}
+	}];
+}
+
 -(void)_fetchCurrentWeatherForCityNamed:(NSString*)city completion:(RWWeatherCompletionBlock)completionBlock {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsLang;
@@ -342,7 +419,10 @@
 		settingsLang = settings[kRWLanguageKey];
 	}
 
-	NSString *const BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
+	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
+	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
+
+	NSString * BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
     NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@",
                                 BASE_URL_STRING, [city stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],settingsLang];
@@ -354,11 +434,47 @@
                            completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         if (!error && response && data) {
 	    	// Now create a NSDictionary from the JSON data
+	    	RWLog(@"RECIEVED CURRENT WEATHER PARSABLE RESPONSE");
 		    NSError *jsonError;
 		    id JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
 		    if (!jsonError && [JSON isKindOfClass:[NSDictionary class]]) {
 		    	dispatch_async(dispatch_get_main_queue(), ^(void){
-		    		completionBlock((NSDictionary*)JSON,nil);
+		    		NSDictionary *jsonDict = (NSDictionary*)JSON;
+		    		NSNumber *code = jsonDict[@"cod"];
+		    		RWLog(@"JSON CURRENT WEATHER DICT: %@, CODE: %@",jsonDict,code);
+		    		if (code.intValue != 404) {
+		    			RWLog(@"VALID CODE: %@",code);
+			    		NSInteger tempCurrent = [self kelvinToLocalTemp:[jsonDict[@"main"][@"temp"] doubleValue]];
+			    		NSString *temp;
+						if (celsiusEnabled) {
+							temp = [NSString stringWithFormat:@"%ld\u00B0C",(long)tempCurrent];
+					    } else {
+							temp = [NSString stringWithFormat:@"%ld\u00B0F",(long)tempCurrent];
+					    }
+
+						NSArray *conditions = jsonDict[@"weather"];
+						NSString *curCondition = conditions[0][@"description"];
+
+						NSNumber *pressure = [NSNumber numberWithDouble:[jsonDict[@"main"][@"pressure"] doubleValue]];
+						NSNumber *humidity = [NSNumber numberWithDouble:[jsonDict[@"main"][@"humidity"] doubleValue]];
+
+						NSString *curPressure = [NSString stringWithFormat:@"Pressure: %ld mb",(long)[pressure integerValue]];
+						NSString *curHumidity = [NSString stringWithFormat:@"Humidity: %ld%%",(long)[humidity integerValue]];
+
+						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity};
+						RWLog(@"RESULT DICT GOING TO CALLBACK: %@",resultDict);
+
+			    		completionBlock(resultDict,nil);
+		    		} else {
+		    			RWLog(@"INVALID CODE: %@",code);
+		    			NSDictionary *userInfo = @{
+						  NSLocalizedDescriptionKey: NSLocalizedString(@"Current weather for city not found.", nil),
+						                          };
+						NSError *error = [NSError errorWithDomain:@"me.akeaswaran.reachweather.error"
+                                     code:404
+                                 userInfo:userInfo];
+		    			completionBlock(nil,error);
+		    		}
    				 });
 		    	
 	    	} else {
@@ -373,6 +489,7 @@
 	    }
     }]; 
 }
+
 
 - (NSInteger)kelvinToLocalTemp:(CGFloat)degreesKelvin
 {
@@ -390,6 +507,17 @@
     return [temp integerValue];
 }
 
+-(NSDateFormatter*)sharedDateFormatter {
+	static dispatch_once_t pred;
+	static NSDateFormatter *shared = nil;
+	 
+	dispatch_once(&pred, ^{
+		shared = [[NSDateFormatter alloc] init];
+		[shared setDateFormat:@"hh:mm a"];
+	});
+	return shared;
+}
+
 -(NSString*)currentDateAsLocalizedString {
 	NSCalendar *calendar = [NSCalendar autoupdatingCurrentCalendar];
 	NSDateComponents *timeComponents = [calendar components:( NSCalendarUnitHour | NSCalendarUnitMinute) fromDate:[NSDate date]];
@@ -404,6 +532,10 @@
 -(void)updateTime:(id)sender {
 	NSString *currentTime = [self currentDateAsLocalizedString];
   	timeLabel.text = currentTime;
+}
+
++ (BOOL)isActivatorInstalled {
+    return [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/libactivator.dylib"];
 }
 
 //UIScrollViewDelegate
@@ -424,6 +556,6 @@
 		RWLog(@"MANUAL CONTROL ACTIVE");
 		[[objc_getClass("SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
 	}
- }
+}
 
 @end
