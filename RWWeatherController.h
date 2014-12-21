@@ -4,6 +4,7 @@
 #import "Headers.h"
 
 typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
+typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 
 @interface RWWeatherController : UIViewController <UIScrollViewDelegate> {
 	
@@ -27,6 +28,8 @@ typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 
 	UILabel *timeLabel;
 	NSTimer *dateTimer;
+
+	NSArray *forecasts;
 }
 
 + (instancetype)sharedInstance;
@@ -34,6 +37,7 @@ typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 
 -(void)activateWidgetArea;
 -(void)setBackgroundWindow:(SBWindow*)window;
+-(CGRect)forecastsContainerFrame;
 -(void)setupWidget;
 -(void)deconstructWidget;
 

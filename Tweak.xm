@@ -2,15 +2,6 @@
 #import "RWActivatorListener.h"
 #import <libactivator/libactivator.h>
 
-#define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
-#define kRWEnabledKey @"tweakEnabled"
-
-#ifdef DEBUG
-    #define RWLog(fmt, ...) NSLog((@"[ReachWeather] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
-#else
-    #define RWLog(fmt, ...)
-#endif
-
 static BOOL enabled;
 
 static void ReloadSettings() {

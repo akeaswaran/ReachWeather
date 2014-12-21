@@ -7,7 +7,7 @@ ADDITIONAL_OBJCFLAGS = -fobjc-arc
 include theos/makefiles/common.mk
 
 TWEAK_NAME = ReachWeather
-ReachWeather_FILES = Tweak.xm RWWeatherController.m RWActivatorListener.m
+ReachWeather_FILES = Tweak.xm RWWeatherController.m RWActivatorListener.m RWForecast.m HexColor.m
 ReachWeather_FRAMEWORKS = UIKit CoreGraphics
 
 include $(THEOS_MAKE_PATH)/tweak.mk

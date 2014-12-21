@@ -11,3 +11,7 @@ How to use ReachWeather:
 * You can now activate Reachability (by double-tapping TouchID) and view your current weather conditions while in any app.
 
 For license terms, see [LICENSE.md](https://github.com/akeaswaran/ReachWeather/blob/master/LICENSE.md).
+
+### Credits
+
+* [HexColors](https://github.com/mRs-/HexColors/)

@@ -10,3 +10,7 @@
 @interface RWLanguagesListController : PSListItemsController
 
 @end
+
+@interface RWForecastTypesListController : PSListItemsController
+
+@end

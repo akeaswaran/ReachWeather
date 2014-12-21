@@ -1,15 +1,23 @@
-
+//RWPrefs.m
 #import "RWPrefs.h"
 #import <UIKit/UIKit.h>
 
 #define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
 #define kRWEnabledKey @"tweakEnabled"
+#define kRWManualControlKey @"manualControl"
+
 #define kRWCityKey @"city"
+#define kRWTitleColorSwitchKey @"customTitleColorEnabled"
+#define kRWTitleColorKey @"customTitleColor"
+#define kRWDetailColorSwitchKey @"customDetailColorEnabled"
+#define kRWDetailColorKey @"customDetailColor"
+
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
 #define kRWLanguageKey @"language"
 #define kRWDetailedViewKey @"detailedView"
-#define kRWManualControlKey @"manualControl"
 #define kRWClockViewKey @"clockView"
+#define kRWForecastViewKey @"forecastEnabled"
+#define kRWForecastTypeKey @"forecastType"
 
 @implementation RWPrefsListController
 - (id)specifiers {
@@ -50,6 +58,38 @@
         [cityField setProperty:@(YES) forKey:@"enabled"];
         [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
 
+        PSSpecifier *mainColorSwitch = [PSSpecifier preferenceSpecifierNamed:@"Custom Title Color"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [mainColorSwitch setIdentifier:kRWTitleColorSwitchKey];
+        [mainColorSwitch setProperty:@(YES) forKey:@"enabled"];
+
+        PSTextFieldSpecifier *mainColorField = [PSTextFieldSpecifier preferenceSpecifierNamed:nil target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
+        [mainColorField setPlaceholder:@"hex code"];
+        [mainColorField setIdentifier:kRWTitleColorKey];
+        [mainColorField setProperty:@(YES) forKey:@"enabled"];
+        [mainColorField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeAllCharacters autoCorrection:UITextAutocorrectionTypeNo];
+
+        PSSpecifier *infoColorSwitch = [PSSpecifier preferenceSpecifierNamed:@"Custom Detail Color"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [infoColorSwitch setIdentifier:kRWDetailColorSwitchKey];
+        [infoColorSwitch setProperty:@(YES) forKey:@"enabled"];
+
+        PSTextFieldSpecifier *infoColorField = [PSTextFieldSpecifier preferenceSpecifierNamed:nil target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
+        [infoColorField setPlaceholder:@"hex code"];
+        [infoColorField setIdentifier:kRWDetailColorKey];
+        [infoColorField setProperty:@(YES) forKey:@"enabled"];
+        [infoColorField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeAllCharacters autoCorrection:UITextAutocorrectionTypeNo];
+
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"UI Options"];
         PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Detailed Weather View"
                                                               target:self
@@ -70,6 +110,27 @@
                                                                 edit:Nil];
         [clockEnabled setIdentifier:kRWClockViewKey];
         [clockEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *forecastEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Forecast Page"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [forecastEnabled setIdentifier:kRWForecastViewKey];
+        [forecastEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *forecastType = [PSSpecifier preferenceSpecifierNamed:@"Forecast Type"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:[RWForecastTypesListController class]
+                                                                cell:PSLinkListCell
+                                                                edit:Nil];
+        [forecastType setIdentifier:kRWForecastTypeKey];
+        [forecastType setValues:[self forecastTypeValues] titles:[self forecastTypeTitles]];
+        [forecastType setProperty:@(YES) forKey:@"enabled"];
 
         PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:@"Use Celsius?"
                                                               target:self
@@ -117,10 +178,16 @@
 
         [specifiers addObject:secondGroup];
         [specifiers addObject:cityField];
+        [specifiers addObject:mainColorSwitch];
+        [specifiers addObject:mainColorField];
+        [specifiers addObject:infoColorSwitch];
+        [specifiers addObject:infoColorField];
 
         [specifiers addObject:thirdGroup];
         [specifiers addObject:clockEnabled];
         [specifiers addObject:detailedEnabled];
+        [specifiers addObject:forecastEnabled];
+        [specifiers addObject:forecastType];
         [specifiers addObject:celsius];
 
         [specifiers addObject:fourthGroup];
@@ -138,7 +205,7 @@
 - (id)getValueForSpecifier:(PSSpecifier *)specifier
 {
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-    if (settings[specifier.identifier] && ![specifier.identifier isEqual:kRWCityKey] && ![specifier.identifier isEqual:kRWLanguageKey]) {
+    if (settings[specifier.identifier] && ![specifier.identifier isEqual:kRWCityKey] && ![specifier.identifier isEqual:kRWLanguageKey] && ![specifier.identifier isEqual:kRWForecastTypeKey] && ![specifier.identifier isEqual:kRWTitleColorKey] && ![specifier.identifier isEqual:kRWDetailColorKey]) {
         NSNumber *settingEnabled = settings[specifier.identifier];
         if (settingEnabled.intValue == 1) {
             return [NSNumber numberWithBool:YES];
@@ -148,15 +215,33 @@
     } else {
         if ([specifier.identifier isEqual:kRWCityKey]) {
             if ([settings[kRWCityKey] isEqualToString:@""]) {
-                return nil;
+                return @"New York";
             } else {
                 return [settings objectForKey:kRWCityKey];
             }
-        } else {
+        } else if ([specifier.identifier isEqual:kRWLanguageKey]) {
             if ([settings[kRWLanguageKey] isEqualToString:@""]) {
-                return nil;
+                return @"en";
             } else {
                 return [settings objectForKey:kRWLanguageKey];
+            }
+        } else if ([specifier.identifier isEqual:kRWForecastTypeKey]) {
+            if ([settings[kRWForecastTypeKey] isEqualToString:@""]) {
+                return @"3";
+            } else {
+                return [settings objectForKey:kRWForecastTypeKey];
+            }
+        } else if ([specifier.identifier isEqual:kRWTitleColorKey]) {
+            if ([settings[kRWTitleColorKey] isEqualToString:@""]) {
+                return @"#FFFFFF";
+            } else {
+                return [settings objectForKey:kRWTitleColorKey];
+            }
+        } else {
+            if ([settings[kRWDetailColorKey] isEqualToString:@""]) {
+                return @"#AAAAAA";
+            } else {
+                return [settings objectForKey:kRWDetailColorKey];
             }
         }
     }
@@ -186,8 +271,20 @@
     return @[@"en",@"ru",@"it",@"es",@"uk",@"de",@"pt",@"ro",@"pl",@"fi",@"nl",@"fr",@"bg",@"sv",@"zh_tw",@"zh_cn",@"tr",@"hr",@"ca"];
 }
 
+- (NSArray *)forecastTypeTitles {
+  return @[@"3 Day", @"5 Day"];
+}
+
+- (NSArray *)forecastTypeValues {
+  return @[@"3",@"5"];
+}
+
 @end
 
 @implementation RWLanguagesListController
+
+@end
+
+@implementation RWForecastTypesListController
 
 @end
