@@ -1,7 +1,7 @@
 Package: me.akeaswaran.reachweather
 Name: ReachWeather
 Depends: mobilesubstrate, preferenceloader, firmware (>= 8.0)
-Version: 1.3
+Version: 1.3.1
 Architecture: iphoneos-arm
 Description: Puts current weather conditions in your Reachability view (on supported devices).
 Maintainer: SHIVADOC <shivadoc15@gmail.com>

@@ -16,8 +16,8 @@
 		NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
 		BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
 
-    	NSInteger highTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"day"] doubleValue]];
-		NSInteger lowTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"night"] doubleValue]];
+    	NSInteger highTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"max"] doubleValue]];
+		NSInteger lowTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"min"] doubleValue]];
 
 		if (!highTemp || !lowTemp) {
 			_highTemperature = @"--\u00B0C";
@@ -115,6 +115,13 @@
 
 - (UIView*)forecastViewForDayCount:(NSInteger)dayCount {
 	CGRect containerFrame = [[RWWeatherController sharedInstance] forecastsContainerFrame];
+	CGFloat highFontSize = 28.0;
+	CGFloat lowFontSize = 22.0;
+	if (IS_IPHONE_5) {
+		highFontSize = 25.0;
+		lowFontSize = 19.0;
+	}
+
 	UIView *dayView = [[UIView alloc] initWithFrame:CGRectMake(0,0,containerFrame.size.width / dayCount,containerFrame.size.height)];
 
 	UILabel *dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,dayView.frame.size.width,20.0)];
@@ -123,14 +130,14 @@
 	[dateLabel setTextColor:[self setDetailColor]];
 	[dateLabel setText:_date];
 
-	UILabel *highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,dateLabel.frame.size.height + 4.0,dayView.frame.size.width,32.0)];
-	[highLabel setFont:[UIFont systemFontOfSize:28.0]];
+	UILabel *highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,dateLabel.frame.size.height + 4.0,dayView.frame.size.width,highFontSize + 4.0)];
+	[highLabel setFont:[UIFont systemFontOfSize:highFontSize]];
 	[highLabel setTextAlignment:NSTextAlignmentCenter];
 	[highLabel setTextColor:[self setTitleColor]];
 	[highLabel setText:_highTemperature];
 
-	UILabel *lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,dayView.frame.size.width,26.0)];
-	[lowLabel setFont:[UIFont systemFontOfSize:22.0]];
+	UILabel *lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,dayView.frame.size.width,lowFontSize + 4.0)];
+	[lowLabel setFont:[UIFont systemFontOfSize:lowFontSize]];
 	[lowLabel setTextAlignment:NSTextAlignmentCenter];
 	[lowLabel setTextColor:[self setTitleColor]];
 	[lowLabel setText:_lowTemperature];

@@ -333,7 +333,12 @@
 
 -(UIView*)_createdForecastsView:(NSArray*)items {
 	UIView *containerView = [[UIView alloc] initWithFrame:[self forecastsContainerFrame]];
-	UILabel *forecastLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0,35.0,containerView.frame.size.width,28.0)];
+	CGFloat heightOffset = 35.0; 
+	if (IS_IPHONE_5) {
+		heightOffset = 10.0;
+	}
+
+	UILabel *forecastLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0,heightOffset,containerView.frame.size.width,28.0)];
 
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *count;
