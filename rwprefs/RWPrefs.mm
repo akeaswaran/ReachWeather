@@ -1,33 +1,23 @@
 //RWPrefs.m
 #import "RWPrefs.h"
+#import "../Headers.h"
 #import <UIKit/UIKit.h>
 
-#define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
-#define kRWEnabledKey @"tweakEnabled"
-#define kRWManualControlKey @"manualControl"
-
-#define kRWCityKey @"city"
-#define kRWTitleColorSwitchKey @"customTitleColorEnabled"
-#define kRWTitleColorKey @"customTitleColor"
-#define kRWDetailColorSwitchKey @"customDetailColorEnabled"
-#define kRWDetailColorKey @"customDetailColor"
-
-#define kRWCelsiusEnabledKey @"celsiusEnabled"
-#define kRWLanguageKey @"language"
-#define kRWDetailedViewKey @"detailedView"
-#define kRWClockViewKey @"clockView"
-#define kRWForecastViewKey @"forecastEnabled"
-#define kRWForecastTypeKey @"forecastType"
-
 @implementation RWPrefsListController
+
+-(NSString*)localizedStringWithKey:(NSString*)key {
+  NSBundle *tweakBundle = [NSBundle bundleWithPath:kRWBundlePath];
+  return [tweakBundle localizedStringForKey:key value:@"" table:nil];
+}
+
 - (id)specifiers {
 	if (_specifiers == nil) {
         NSMutableArray *specifiers = [[NSMutableArray alloc] init];
         
         [self setTitle:@"ReachWeather"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Tweak Options"];
-        [firstGroup setProperty:@"Manual Control disables the reset timer on Reachability, keeping the view open indefinitely until you close it manually." forKey:@"footerText"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"TWEAK_OPTIONS"]];
+        [firstGroup setProperty:[self localizedStringWithKey:@"TWEAK_OPTIONS_DETAIL"] forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
@@ -39,7 +29,7 @@
         [enabled setIdentifier:kRWEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
         
-        PSSpecifier *manualControl = [PSSpecifier preferenceSpecifierNamed:@"Manual Reachability Control"
+        PSSpecifier *manualControl = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"MANUAL_CONTROL"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -49,16 +39,16 @@
         [manualControl setIdentifier:kRWManualControlKey];
         [manualControl setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Customization"];
-        [secondGroup setProperty:@"Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate. \n\nYou can even include your country as well for more accurate weather data! After the name of the city, add a comma, then a space, and then the name of the country (EX: Sydney, Australia). " forKey:@"footerText"];
+        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"CUSTOMIZATION"]];
+        [secondGroup setProperty:[self localizedStringWithKey:@"CUSTOMIZATION_DETAIL"] forKey:@"footerText"];
 
-        PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"City" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
-        [cityField setPlaceholder:@"your city"];
+        PSTextFieldSpecifier *cityField = [PSTextFieldSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CITY"] target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
+        [cityField setPlaceholder:[self localizedStringWithKey:@"YOUR_CITY"]];
         [cityField setIdentifier:kRWCityKey];
         [cityField setProperty:@(YES) forKey:@"enabled"];
         [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
 
-        PSSpecifier *mainColorSwitch = [PSSpecifier preferenceSpecifierNamed:@"Custom Title Color"
+        PSSpecifier *mainColorSwitch = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CUSTOM_TITLE_COLOR"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -69,12 +59,12 @@
         [mainColorSwitch setProperty:@(YES) forKey:@"enabled"];
 
         PSTextFieldSpecifier *mainColorField = [PSTextFieldSpecifier preferenceSpecifierNamed:nil target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
-        [mainColorField setPlaceholder:@"hex code"];
+        [mainColorField setPlaceholder:[self localizedStringWithKey:@"HEX_CODE"]];
         [mainColorField setIdentifier:kRWTitleColorKey];
         [mainColorField setProperty:@(YES) forKey:@"enabled"];
         [mainColorField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeAllCharacters autoCorrection:UITextAutocorrectionTypeNo];
 
-        PSSpecifier *infoColorSwitch = [PSSpecifier preferenceSpecifierNamed:@"Custom Detail Color"
+        PSSpecifier *infoColorSwitch = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CUSTOM_DETAIL_COLOR"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -85,13 +75,24 @@
         [infoColorSwitch setProperty:@(YES) forKey:@"enabled"];
 
         PSTextFieldSpecifier *infoColorField = [PSTextFieldSpecifier preferenceSpecifierNamed:nil target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
-        [infoColorField setPlaceholder:@"hex code"];
+        [infoColorField setPlaceholder:[self localizedStringWithKey:@"HEX_CODE"]];
         [infoColorField setIdentifier:kRWDetailColorKey];
         [infoColorField setProperty:@(YES) forKey:@"enabled"];
         [infoColorField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeAllCharacters autoCorrection:UITextAutocorrectionTypeNo];
 
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"UI Options"];
-        PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Detailed Weather View"
+
+        PSSpecifier *centerEnabled = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CENTER_WEATHER_VIEW"]
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [centerEnabled setIdentifier:kRWCenterMainViewKey];
+        [centerEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *detailedEnabled = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"ENABLE_DETAIL_PAGE"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -101,7 +102,7 @@
         [detailedEnabled setIdentifier:kRWDetailedViewKey];
         [detailedEnabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *clockEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Clock Page"
+        PSSpecifier *clockEnabled = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"ENABLE_CLOCK_PAGE"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -111,7 +112,7 @@
         [clockEnabled setIdentifier:kRWClockViewKey];
         [clockEnabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *forecastEnabled = [PSSpecifier preferenceSpecifierNamed:@"Enable Forecast Page"
+        PSSpecifier *forecastEnabled = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"ENABLE_FORECAST_PAGE"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -121,7 +122,7 @@
         [forecastEnabled setIdentifier:kRWForecastViewKey];
         [forecastEnabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *forecastType = [PSSpecifier preferenceSpecifierNamed:@"Forecast Type"
+        PSSpecifier *forecastType = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"FORECAST_TYPE"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -132,7 +133,7 @@
         [forecastType setValues:[self forecastTypeValues] titles:[self forecastTypeTitles]];
         [forecastType setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:@"Use Celsius?"
+        PSSpecifier *celsius = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"USE_CELSIUS"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -142,9 +143,9 @@
         [celsius setIdentifier:kRWCelsiusEnabledKey];
         [celsius setProperty:@(YES) forKey:@"enabled"];
                
-        PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:@"Localization"];
+        PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"LOCALIZATION"]];
 
-        PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:@"Language"
+        PSSpecifier *language = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"LANGUAGE"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
@@ -156,8 +157,34 @@
         [language setProperty:@(YES) forKey:@"enabled"];
 
 
-        PSSpecifier *fifthGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
-        [fifthGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
+        PSSpecifier *fifthGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"THIRD_PARTY"]];
+
+        PSSpecifier *hexClrs = [PSSpecifier preferenceSpecifierNamed:@"HexColors"
+                                                              target:self
+                                                                 set:nil
+                                                                 get:nil
+                                                              detail:Nil
+                                                                cell:PSLinkCell
+                                                                edit:Nil];
+        hexClrs.name = @"HexColors";
+        hexClrs->action = @selector(openHexColors);
+        [hexClrs setIdentifier:@"hexClrs"];
+        [hexClrs setProperty:@(YES) forKey:@"enabled"];
+        
+        PSSpecifier *icons8 = [PSSpecifier preferenceSpecifierNamed:@"Icons8"
+                                                              target:self
+                                                                 set:nil
+                                                                 get:nil
+                                                              detail:Nil
+                                                                cell:PSLinkCell
+                                                                edit:Nil];
+        icons8.name = @"Icons8";
+        icons8->action = @selector(openIcons8);
+        [icons8 setIdentifier:@"icons8"];
+        [icons8 setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *sixthGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"DEVELOPER"]];
+        [sixthGroup setProperty:[self localizedStringWithKey:@"DEVELOPER_DETAIL"] forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
@@ -185,6 +212,7 @@
 
         [specifiers addObject:thirdGroup];
         [specifiers addObject:clockEnabled];
+        [specifiers addObject:centerEnabled];
         [specifiers addObject:detailedEnabled];
         [specifiers addObject:forecastEnabled];
         [specifiers addObject:forecastType];
@@ -192,8 +220,12 @@
 
         [specifiers addObject:fourthGroup];
         [specifiers addObject:language];
-        
+
         [specifiers addObject:fifthGroup];
+        [specifiers addObject:hexClrs];
+        [specifiers addObject:icons8];
+        
+        [specifiers addObject:sixthGroup];
         [specifiers addObject:github];
 
         _specifiers = specifiers;
@@ -263,6 +295,16 @@
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran"]];
 }
 
+- (void)openIcons8
+{
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://icons8.com/license"]];
+}
+
+- (void)openHexColors
+{
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/mRs-/HexColors"]];
+}
+
 - (NSArray *)languageTitles {
     return @[@"English",@"Russian",@"Italian",@"Spanish",@"Ukrainian",@"German",@"Portugese",@"Romanian",@"Polish",@"Finnish",@"Dutch",@"French",@"Bulgarian",@"Swedish",@"Chinese Traditional",@"Chinese Simplified",@"Turkish",@"Croatian",@"Catalan"];
 }
@@ -272,7 +314,7 @@
 }
 
 - (NSArray *)forecastTypeTitles {
-  return @[@"3 Day", @"5 Day"];
+  return @[[self localizedStringWithKey:@"THREE_DAY"], [self localizedStringWithKey:@"FIVE_DAY"]];
 }
 
 - (NSArray *)forecastTypeValues {

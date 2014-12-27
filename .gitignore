@@ -1,7 +1,7 @@
 .theos
-*.deb
-debs
-_
 obj
+_
 theos
+debs
 screenshot*.png
+*.deb

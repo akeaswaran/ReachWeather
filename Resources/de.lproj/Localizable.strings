@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+    	<key>THREE_DAY_FORECAST</key>
+    	<string>3-Tage Vorhersage</string>
+
+    	<key>FIVE_DAY_FORECAST</key>
+    	<string>5-Tage Vorhersage</string>
+
+    	<key>THREE_DAY</key>
+    	<string>3 Tage</string>
+
+    	<key>FIVE_DAY</key>
+    	<string>5 Tage</string>
+
+    	<key>ENABLED</key>
+    	<string>Aktiv</string>
+
+    	<key>MANUAL_CONTROL</key>
+    	<string>Manueller Einhandmodus</string>
+
+    	<key>CITY</key>
+    	<string>Stadt</string>
+
+    	<key>YOUR_CITY</key>
+    	<string>Deine Stadt</string>
+
+    	<key>CUSTOM_TITLE_COLOR</key>
+    	<string>Eigene Titelfarbe</string>
+
+    	<key>CUSTOM_DETAIL_COLOR</key>
+    	<string>Eigene Detailfarbe</string>
+
+    	<key>HEX_CODE</key>
+    	<string>HEX Code</string>
+
+    	<key>ENABLE_CLOCK_PAGE</key>
+    	<string>Uhrzeit aktivieren</string>
+
+    	<key>ENABLE_DETAIL_PAGE</key>
+    	<string>Wetterdetails aktivieren</string>
+
+    	<key>ENABLE_FORECAST_PAGE</key>
+    	<string>Vorhersage aktivieren</string>
+
+    	<key>FORECAST_TYPE</key>
+    	<string>Art der Vorhersage</string>
+
+    	<key>USE_CELSIUS</key>
+    	<string>Celsius verwenden</string>
+
+    	<key>LANGUAGE</key>
+    	<string>Sprache</string>
+
+    	<key>THIRD_PARTY</key>
+    	<string>Verwendete Inhalte von Dritten:</string>
+
+    	<key>DEVELOPER</key>
+    	<string>Entwickler</string>
+
+    	<key>DEVELOPER_DETAIL</key>
+    	<string>Dieser Tweak ist Open-Source. Wirf einen Blick auf dieses und andere meiner Projekte auf GitHub.</string>
+
+    	<key>CUSTOMIZATION</key>
+    	<string>Anpassung</string>
+
+    	<key>CUSTOMIZATION_DETAIL</key>
+    	<string>Trage den Namen deiner Stadt mit Leer- und Sonderzeichen ein. Groß- und Kleinschreibung sind egal, Abkürzungen solltest du vermeiden. 
+
+Um genauere Daten zu erhalten, kannst du auch das zugehörige Land eintragen. Schreibe dazu nach dem Stadtnamen ein Komma, dann ein Leerzeichen, und anschließend das entsprechende Land (bspw. Berlin, Deutschland).</string>
+
+    	<key>UI_OPTIONS</key>
+    	<string>UI Optionen</string>
+
+    	<key>LOCALIZATION</key>
+    	<string>Lokalisierung</string>
+
+    	<key>TWEAK_OPTIONS</key>
+    	<string>Allgemeine Optionen</string>
+
+    	<key>TWEAK_OPTIONS_DETAIL</key>
+    	<string>Manueller Einhandmodus deaktiviert das automatische Zurücksetzen der Ansicht nach einigen Sekunden, sodass ReachWeather so lange offen bleibt bis du es manuell schließt.</string>
+
+    	<key>WEATHER_RETREIVAL_ERROR</key>
+    	<string>Fehler: Aktuelle Wetterdaten konnten nicht bezogen werden.</string>
+
+    	<key>HIGH</key>
+    	<string>Höchste</string>
+
+    	<key>LOW</key>
+    	<string>Tiefste</string>
+
+    	<key>HUMIDITY</key>
+    	<string>Luftfeuchtigkeit</string>
+
+    	<key>PRESSURE</key>
+    	<string>Luftdruck</string>
+
+        <key>ACTIVATION_METHODS</key>
+        <string>Aktivierungsmethode</string>
+
+        <key>CENTER_WEATHER_VIEW</key>
+        <string>Zentrum Wetter Ansicht</string>
+	</dict>
+</plist>

@@ -38,6 +38,8 @@
 	    NSArray *weatherItems = dayData[@"weather"];
 	    NSDictionary *weather = weatherItems[0];
 	    _condition = weather[@"main"];
+
+	    _conditionCode = weather[@"icon"];
  	}
     return self;
 }
@@ -73,7 +75,7 @@
 	return [NSDateFormatter localizedStringFromDate:date dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterNoStyle];
 }
 
--(UIColor *)setTitleColor {
+-(UIColor *)settingsTitleColor {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsHex;
 	if (!settings[kRWTitleColorKey]) {
@@ -93,7 +95,7 @@
 	return setColor;
 }
 
--(UIColor *)setDetailColor {
+-(UIColor *)settingsDetailColor {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsHex;
 	if (!settings[kRWDetailColorKey]) {
@@ -113,6 +115,43 @@
 	return setColor;
 }
 
+
+-(UIImage*)_weatherImageForConditionCode {
+	NSString *imageName;
+	RWLog(@"CONDITION CODE: %@",_conditionCode);
+
+	if ([_conditionCode isEqualToString:@"01d"] || [_conditionCode isEqualToString:@"01n"]) {
+		imageName = @"mostly-sunny";
+	} else if ([_conditionCode isEqualToString:@"02d"] || [_conditionCode isEqualToString:@"02n"]) {
+		imageName = @"partly-cloudy";
+	} else if ([_conditionCode isEqualToString:@"03d"] || [_conditionCode isEqualToString:@"03n"] || [_conditionCode isEqualToString:@"04d"] || [_conditionCode isEqualToString:@"04n"]) {
+		imageName = @"mostly-cloudy";
+	} else if ([_conditionCode isEqualToString:@"09d"] || [_conditionCode isEqualToString:@"09n"]) {
+		imageName = @"showers";
+	} else if ([_conditionCode isEqualToString:@"10d"] || [_conditionCode isEqualToString:@"10n"]) {
+		imageName = @"rain";
+	} else if ([_conditionCode isEqualToString:@"11d"] || [_conditionCode isEqualToString:@"11n"]) {
+		imageName = @"storm";
+	} else if ([_conditionCode isEqualToString:@"13d"] || [_conditionCode isEqualToString:@"13n"]) {
+		imageName = @"snow";
+	} else {
+		imageName = @"foggy";
+	}
+
+	NSString *imagePath = [kRWBundlePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.png",imageName]];
+	return [UIImage imageWithContentsOfFile:imagePath];
+}
+
+-(BOOL)_imageBundleExists {
+	if ([[NSFileManager defaultManager] fileExistsAtPath:kRWBundlePath]) {
+		RWLog(@"WEATHER.FRAMEWORK EXISTS, USING IMAGES");
+		return YES;
+	} else {
+		RWLog(@"WEATHER.FRAMEWORK DOES NOT EXIST, USING TEXT");
+		return NO;
+	}
+}
+
 - (UIView*)forecastViewForDayCount:(NSInteger)dayCount {
 	CGRect containerFrame = [[RWWeatherController sharedInstance] forecastsContainerFrame];
 	CGFloat highFontSize = 28.0;
@@ -127,32 +166,36 @@
 	UILabel *dateLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,dayView.frame.size.width,20.0)];
 	[dateLabel setFont:[UIFont systemFontOfSize:14.0]];
 	[dateLabel setTextAlignment:NSTextAlignmentCenter];
-	[dateLabel setTextColor:[self setDetailColor]];
+	[dateLabel setTextColor:[self settingsDetailColor]];
 	[dateLabel setText:_date];
+	[dayView addSubview:dateLabel];
 
-	UILabel *highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,dateLabel.frame.size.height + 4.0,dayView.frame.size.width,highFontSize + 4.0)];
+	UIImageView *conditionImageView = [[UIImageView alloc] initWithImage:[self _weatherImageForConditionCode]];
+	UIImage* originalImage = [self _weatherImageForConditionCode];
+	[conditionImageView setContentMode:UIViewContentModeCenter];
+	UIImage* imageForRendering = [originalImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+	conditionImageView.image = imageForRendering;
+	conditionImageView.tintColor = [self settingsDetailColor]; 
+	CGRect frame = conditionImageView.frame;
+	frame.origin.x = (dayView.frame.size.width / 2.0) - (frame.size.width / 2.0);
+	frame.origin.y = dateLabel.frame.size.height + 4.0;
+	conditionImageView.frame = frame;
+	[dayView addSubview:conditionImageView];
+
+	UILabel *highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,conditionImageView.frame.origin.y + conditionImageView.frame.size.height + 4.0,dayView.frame.size.width,highFontSize + 4.0)];
 	[highLabel setFont:[UIFont systemFontOfSize:highFontSize]];
 	[highLabel setTextAlignment:NSTextAlignmentCenter];
-	[highLabel setTextColor:[self setTitleColor]];
+	[highLabel setTextColor:[self settingsTitleColor]];
 	[highLabel setText:_highTemperature];
+	[dayView addSubview:highLabel];
 
 	UILabel *lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,dayView.frame.size.width,lowFontSize + 4.0)];
 	[lowLabel setFont:[UIFont systemFontOfSize:lowFontSize]];
 	[lowLabel setTextAlignment:NSTextAlignmentCenter];
-	[lowLabel setTextColor:[self setTitleColor]];
+	[lowLabel setTextColor:[self settingsTitleColor]];
 	[lowLabel setText:_lowTemperature];
-
-	UILabel *conditionLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,lowLabel.frame.origin.y + lowLabel.frame.size.height + 4.0, dayView.frame.size.width,20.0)];
-	[conditionLabel setFont:[UIFont systemFontOfSize:14.0]];
-	[conditionLabel setTextAlignment:NSTextAlignmentCenter];
-	[conditionLabel setTextColor:[self setDetailColor]];
-	[conditionLabel setText:_condition];
-
-	[dayView addSubview:dateLabel];
-	[dayView addSubview:highLabel];
 	[dayView addSubview:lowLabel];
-	[dayView addSubview:conditionLabel];
-
+	
 	return dayView;
 }
 

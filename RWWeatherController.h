@@ -9,6 +9,9 @@ typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 @interface RWWeatherController : UIViewController <UIScrollViewDelegate> {
 	
 	SBWindow *backgroundWindow;
+	UIView *widgetContainerView;
+	NSMutableArray *widgets;
+
 	NSString *currentWeatherCondition;
 	NSString *temperatureCondition;
 	NSString *highTempCondition;

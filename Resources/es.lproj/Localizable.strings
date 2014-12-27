@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>THREE_DAY_FORECAST</key>
+		<string>3-Día Pronóstico</string>
+
+		<key>FIVE_DAY_FORECAST</key>
+		<string>5-Día Pronóstico</string>
+
+		<key>THREE_DAY</key>
+		<string>3 Día</string>
+
+		<key>FIVE_DAY</key>
+		<string>5 Día</string>
+
+		<key>ENABLED</key>
+		<string>Activado</string>
+
+		<key>MANUAL_CONTROL</key>
+		<string>Reachability Control Manual</string>
+
+		<key>CITY</key>
+		<string>Ciudad</string>
+
+		<key>YOUR_CITY</key>
+		<string>su ciudad</string>
+
+		<key>CUSTOM_TITLE_COLOR</key>
+		<string>Color Título a Medida</string>
+
+		<key>CUSTOM_DETAIL_COLOR</key>
+		<string>Color Detalle a Medida</string>
+
+		<key>HEX_CODE</key>
+		<string>Código de hex</string>
+
+		<key>ENABLE_CLOCK_PAGE</key>
+		<string>Activar Página de Reloj</string>
+
+		<key>ENABLE_DETAIL_PAGE</key>
+		<string>Activar Página de Tiempo Detallado</string>
+
+		<key>ENABLE_FORECAST_PAGE</key>
+		<string>Activar Página de Pronóstico</string>
+
+		<key>FORECAST_TYPE</key>
+		<string>Tipo de Pronóstico</string>
+
+		<key>USE_CELSIUS</key>
+		<string>Usar grados Celsius</string>
+
+		<key>LANGUAGE</key>
+		<string>Idioma</string>
+
+		<key>THIRD_PARTY</key>
+		<string>Recursos de terceras partes usado para ReachWeather:</string>
+
+		<key>DEVELOPER</key>
+		<string>Desarollador</string>
+
+		<key>DEVELOPER_DETAIL</key>
+		<string>Este tweak es fuente abierto. Puede ver este y otros proyectos en mi GitHub.</string>
+
+		<key>CUSTOMIZATION</key>
+		<string>Personalización</string>
+
+		<key>CUSTOMIZATION_DETAIL</key>
+		<string>Consigne el nombre de la ciudad (con todos los espacios y caracteres especiales que tiene).  No necesita escribir en mayúsculas o abreviar. 
+
+¡Puede incluir su país también para obtener datos de tiempo más precisos! Después del nombre de la ciudad, añada una coma, además un espacio, y finalmente el nombre del país (por ejemplo: Madrid, España). </string>
+
+		<key>UI_OPTIONS</key>
+		<string>Opciónes de UI</string>
+
+		<key>LOCALIZATION</key>
+		<string>Localización</string>
+
+		<key>TWEAK_OPTIONS</key>
+		<string>Opciónes de Tweak</string>
+
+		<key>TWEAK_OPTIONS_DETAIL</key>
+		<string>Control Manual desactiva el temporizador de reinciar en Reachability, que mantiene la vista abierta indefinidamente hasta que la cierra manualmente.</string>
+
+		<key>WEATHER_RETREIVAL_ERROR</key>
+		<string>Error: imposible recuperar el tiempo actual.</string>
+
+		<key>HIGH</key>
+		<string>Alto</string>
+
+		<key>LOW</key>
+		<string>Bajo</string>
+
+		<key>HUMIDITY</key>
+		<string>Humedad</string>
+
+		<key>PRESSURE</key>
+		<string>Presión</string>
+
+		<key>ACTIVATION_METHODS</key>
+        <string>Estilos de Activación</string>
+
+        <key>CENTER_WEATHER_VIEW</key>
+        <string>Centro de Vista del Tiempo</string>
+	</dict>
+</plist>

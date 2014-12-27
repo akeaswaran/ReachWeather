@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+    	<key>THREE_DAY_FORECAST</key>
+    	<string>3-Day Forecast</string>
+
+    	<key>FIVE_DAY_FORECAST</key>
+    	<string>5-Day Forecast</string>
+
+    	<key>THREE_DAY</key>
+    	<string>3 Day</string>
+
+    	<key>FIVE_DAY</key>
+    	<string>5 Day</string>
+
+    	<key>ENABLED</key>
+    	<string>Enabled</string>
+
+    	<key>MANUAL_CONTROL</key>
+    	<string>Manual Reachability Control</string>
+
+    	<key>CITY</key>
+    	<string>City</string>
+
+    	<key>YOUR_CITY</key>
+    	<string>your city</string>
+
+    	<key>CUSTOM_TITLE_COLOR</key>
+    	<string>Custom Title Color</string>
+
+    	<key>CUSTOM_DETAIL_COLOR</key>
+    	<string>Custom Detail Color</string>
+
+    	<key>HEX_CODE</key>
+    	<string>hex code</string>
+
+    	<key>ENABLE_CLOCK_PAGE</key>
+    	<string>Enable Clock Page</string>
+
+    	<key>ENABLE_DETAIL_PAGE</key>
+    	<string>Enable Detailed Weather Page</string>
+
+    	<key>ENABLE_FORECAST_PAGE</key>
+    	<string>Enable Forecast Page</string>
+
+    	<key>FORECAST_TYPE</key>
+    	<string>Forecast Type</string>
+
+    	<key>USE_CELSIUS</key>
+    	<string>Use Celsius</string>
+
+    	<key>LANGUAGE</key>
+    	<string>Language</string>
+
+    	<key>THIRD_PARTY</key>
+    	<string>Third-party resources used in ReachWeather:</string>
+
+    	<key>DEVELOPER</key>
+    	<string>Developer</string>
+
+    	<key>DEVELOPER_DETAIL</key>
+    	<string>This tweak is open source. You can check out this and other projects on my GitHub.</string>
+
+    	<key>CUSTOMIZATION</key>
+    	<string>Customization</string>
+
+    	<key>CUSTOMIZATION_DETAIL</key>
+    	<string>Enter the name of the city how it's written (including spaces and special characters). No need to capitalize or abbreviate. 
+
+You can even include your country as well for more accurate weather data! After the name of the city, add a comma, then a space, and then the name of the country (EX: Sydney, Australia). </string>
+
+    	<key>UI_OPTIONS</key>
+    	<string>UI Options</string>
+
+    	<key>LOCALIZATION</key>
+    	<string>Localization</string>
+
+    	<key>TWEAK_OPTIONS</key>
+    	<string>Tweak Options</string>
+
+    	<key>TWEAK_OPTIONS_DETAIL</key>
+    	<string>Manual Control disables the reset timer on Reachability, keeping the view open indefinitely until you close it manually.</string>
+
+    	<key>WEATHER_RETREIVAL_ERROR</key>
+    	<string>Error: unable to retreive current weather conditions.</string>
+
+    	<key>HIGH</key>
+    	<string>High</string>
+
+    	<key>LOW</key>
+    	<string>Low</string>
+
+    	<key>HUMIDITY</key>
+    	<string>Humidity</string>
+
+    	<key>PRESSURE</key>
+    	<string>Pressure</string>
+
+        <key>CENTER_WEATHER_VIEW</key>
+        <string>Center Weather View</string>
+	</dict>
+</plist>

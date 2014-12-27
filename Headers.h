@@ -1,12 +1,14 @@
 //Headers.h
 
 #define kRWSettingsPath @"/var/mobile/Library/Preferences/me.akeaswaran.reachweather.plist"
+#define kRWBundlePath @"/Library/MobileSubstrate/DynamicLibraries/RWResourcesBundle.bundle"
 #define kRWCityKey @"city"
 #define kRWEnabledKey @"tweakEnabled"
 #define kRWCelsiusEnabledKey @"celsiusEnabled"
 #define kRWDetailedViewKey @"detailedView"
 #define kRWLanguageKey @"language"
 #define kRWManualControlKey @"manualControl"
+#define kRWCenterMainViewKey @"centerMainView"
 #define kRWClockViewKey @"clockView"
 #define kRWForecastViewKey @"forecastEnabled"
 #define kRWForecastTypeKey @"forecastType"

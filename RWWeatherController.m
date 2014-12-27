@@ -18,6 +18,11 @@
 	return shared;
 }
 
+-(NSString*)localizedStringWithKey:(NSString*)key {
+  NSBundle *tweakBundle = [NSBundle bundleWithPath:kRWBundlePath];
+  return [tweakBundle localizedStringForKey:key value:@"" table:nil];
+}
+
 -(void)activateWidgetArea {
 	if (![[objc_getClass("SBReachabilityManager") sharedInstance] reachabilityModeActive]) {
 		[[objc_getClass("SBReachabilityManager") sharedInstance] _handleReachabilityActivated];
@@ -172,31 +177,38 @@
 	NSNumber *forecastNum = settings[kRWForecastViewKey];
 	BOOL fcEnabled = forecastNum ? [forecastNum boolValue] : 0;
 
-	NSMutableArray *views = [NSMutableArray array];
+	widgets = [NSMutableArray array];
 	if (tweakEnabled) {
 		if (clockEnabled)
 		{
-			[views addObject:[self _createdClockView]];
+			[widgets addObject:[self _createdClockView]];
 		}
 
-		[views addObject:[self _createdWeatherViewWithCurrentWeather:weather currentTemperature:temperature]];
+		[widgets addObject:[self _createdWeatherViewWithCurrentWeather:weather currentTemperature:temperature]];
 
 		if (detailEnabled) {
-			[views addObject:[self _createdDetailedViewWithHighTemp:highTemp lowTemp:lowTemp pressure:pressure humidity:humidity]];
+			[widgets addObject:[self _createdDetailedViewWithHighTemp:highTemp lowTemp:lowTemp pressure:pressure humidity:humidity]];
 		}
 
 		if (fcEnabled && items) {
-			[views addObject:[self _createdForecastsView:items]];
+			[widgets addObject:[self _createdForecastsView:items]];
 		}
+
+		return [self _widgetContainerWithViews:widgets];
 	} else {
 		return nil;
 	}
 
+	
+
+}
+
+-(UIView*)_widgetContainerWithViews:(NSArray*)views {
 	if (views.count == 1) {
 		return views[0];
 	} else {
-		UIView *wrapperView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
-		UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:wrapperView.frame];
+		widgetContainerView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
+		UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:widgetContainerView.frame];
 
 		for (int i = 0; i < views.count; i++) {
 			UIView *curView = views[i];
@@ -206,7 +218,7 @@
 	   		[scrollView addSubview:curView];
 		}
 
-	    scrollView.contentSize = CGSizeMake(wrapperView.frame.size.width * views.count,scrollView.frame.size.height);
+	    scrollView.contentSize = CGSizeMake(widgetContainerView.frame.size.width * views.count,scrollView.frame.size.height);
 	    [scrollView setScrollEnabled:YES];
 	    [scrollView setPagingEnabled:YES];
 	    [scrollView setUserInteractionEnabled:YES];
@@ -215,26 +227,24 @@
 	    [scrollView setCanCancelContentTouches:YES];
 	    [scrollView setShowsHorizontalScrollIndicator:NO];
 		[scrollView setDelegate:self];
-
-		[wrapperView addSubview:scrollView];
+		[widgetContainerView addSubview:scrollView];
 
 		pageControl = [[UIPageControl alloc] init];
 		[pageControl setNumberOfPages:views.count];
 		CGRect pageFrame = pageControl.frame;
-		pageFrame.origin.x = (wrapperView.frame.size.width / 2.0) - (pageFrame.size.width / 2.0);
-		pageFrame.origin.y = wrapperView.frame.size.height - pageFrame.size.height - kRWCushionBorder;
+		pageFrame.origin.x = (widgetContainerView.frame.size.width / 2.0) - (pageFrame.size.width / 2.0);
+		pageFrame.origin.y = widgetContainerView.frame.size.height - pageFrame.size.height - kRWCushionBorder;
 		pageControl.frame = pageFrame;
-		[wrapperView addSubview:pageControl];
-		return wrapperView;
+		[widgetContainerView addSubview:pageControl];
+		return widgetContainerView;
 	}
-
 }
 
 -(UIView*)_createdClockView {
 	UIView *wrapperView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 	timeLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder,kRWCushionBorder,wrapperView.frame.size.width - kRWCushionBorder - kRWCushionBorder,wrapperView.frame.size.height - kRWCushionBorder - kRWCushionBorder)];
 	[timeLabel setFont:[UIFont systemFontOfSize:60.0]];
-	[timeLabel setTextColor:[self setTitleColor]];
+	[timeLabel setTextColor:[self settingsTitleColor]];
 	[timeLabel setTextAlignment:NSTextAlignmentCenter];
 	[timeLabel setText:[self currentDateAsLocalizedString]];
 	dateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateTime:) userInfo:nil repeats:YES];
@@ -246,7 +256,16 @@
 -(UIView*)_createdDetailedViewWithHighTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity {
 	UIView *detailedView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 
-	highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,cityLabel.frame.origin.y - 25.0,detailedView.frame.size.width,25.0)];
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+
+	NSNumber *centerNum = settings[kRWCenterMainViewKey];
+	BOOL centered = centerNum ? [centerNum boolValue] : 0;
+
+	if (!centered) {
+		highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,cityLabel.frame.origin.y - 25.0,detailedView.frame.size.width,25.0)];
+	} else {
+		highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,temperatureLabel.frame.origin.y,detailedView.frame.size.width,25.0)];
+	}
 	lowLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,highLabel.frame.origin.y + highLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
 	pressureLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,lowLabel.frame.origin.y + lowLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
 	humidityLabel = [[UILabel alloc] initWithFrame:CGRectMake(highLabel.frame.origin.x,pressureLabel.frame.origin.y + pressureLabel.frame.size.height + 4.0,highLabel.frame.size.width,25.0)];
@@ -254,22 +273,22 @@
 
 	[highLabel setTextAlignment:NSTextAlignmentCenter];
 	[highLabel setFont:[UIFont systemFontOfSize:20.0]];
-	[highLabel setTextColor:[self setTitleColor]];
+	[highLabel setTextColor:[self settingsTitleColor]];
 	[highLabel setText:highTemp];
 
 	[lowLabel setTextAlignment:NSTextAlignmentCenter];
 	[lowLabel setFont:[UIFont systemFontOfSize:20.0]];
-	[lowLabel setTextColor:[self setTitleColor]];
+	[lowLabel setTextColor:[self settingsTitleColor]];
 	[lowLabel setText:lowTemp];
 
 	[pressureLabel setTextAlignment:NSTextAlignmentCenter];
 	[pressureLabel setFont:[UIFont systemFontOfSize:20.0]];
-	[pressureLabel setTextColor:[self setTitleColor]];
+	[pressureLabel setTextColor:[self settingsTitleColor]];
 	[pressureLabel setText:pressure];
 
 	[humidityLabel setTextAlignment:NSTextAlignmentCenter];
 	[humidityLabel setFont:[UIFont systemFontOfSize:20.0]];
-	[humidityLabel setTextColor:[self setTitleColor]];
+	[humidityLabel setTextColor:[self settingsTitleColor]];
 	[humidityLabel setText:humidity];
 
 	[detailedView addSubview:highLabel];
@@ -286,40 +305,65 @@
 	NSNumber *enabledNum = settings[kRWEnabledKey];
 	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
 
+	NSNumber *centerNum = settings[kRWCenterMainViewKey];
+	BOOL centered = centerNum ? [centerNum boolValue] : 0;
+
+
+	NSString *settingsCity;
+	if (!settings[kRWCityKey]) {
+		settingsCity = @"New York";
+	} else {
+		settingsCity = settings[kRWCityKey];
+	}
+
 	if (enabledNum && tweakEnabled) {
 		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 
-		temperatureLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder,([backgroundWindow frame].size.height / 2.0)-27.5,100.0,55.0)];
-		[temperatureLabel setTextAlignment:NSTextAlignmentLeft];
-		[temperatureLabel setFont:[UIFont systemFontOfSize:44.0]];
-		[temperatureLabel setTextColor:[self setTitleColor]];
-		[temperatureLabel setText:temperature];
-		[temperatureLabel sizeToFit];
+		if (!centered) {
+			temperatureLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder,([backgroundWindow frame].size.height / 2.0)-27.5,100.0,55.0)];
+			[temperatureLabel setTextAlignment:NSTextAlignmentLeft];
+			[temperatureLabel setFont:[UIFont systemFontOfSize:44.0]];
+			[temperatureLabel setTextColor:[self settingsTitleColor]];
+			[temperatureLabel setText:temperature];
+			[temperatureLabel sizeToFit];
 
-		cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder + temperatureLabel.frame.size.width + 10.0,temperatureLabel.frame.origin.y,[backgroundWindow frame].size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width - kRWCushionBorder,32.0)];
-		[cityLabel setTextAlignment:NSTextAlignmentLeft];
-		[cityLabel setFont:[UIFont systemFontOfSize:28.0]];
-		[cityLabel setTextColor:[self setTitleColor]];
-		[cityLabel setMinimumScaleFactor:0.50];
-		[cityLabel setAdjustsFontSizeToFitWidth:YES];
+			cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(kRWCushionBorder + temperatureLabel.frame.size.width + 10.0,temperatureLabel.frame.origin.y,[backgroundWindow frame].size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width - kRWCushionBorder,32.0)];
+			[cityLabel setTextAlignment:NSTextAlignmentLeft];
+			[cityLabel setFont:[UIFont systemFontOfSize:28.0]];
+			[cityLabel setTextColor:[self settingsTitleColor]];
+			[cityLabel setMinimumScaleFactor:0.50];
+			[cityLabel setAdjustsFontSizeToFitWidth:YES];
+			[cityLabel setText:settingsCity];
 
-		NSString *settingsCity;
-		if (!settings[kRWCityKey]) {
-			settingsCity = @"New York";
+			weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(cityLabel.frame.origin.x,cityLabel.frame.origin.y + cityLabel.frame.size.height + 4.0,cityLabel.frame.size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width,20.0)];
+			[weatherDescriptionLabel setTextAlignment:NSTextAlignmentLeft];
+			[weatherDescriptionLabel setNumberOfLines:0];
+			[weatherDescriptionLabel setFont:[UIFont systemFontOfSize:15.0]];
+			[weatherDescriptionLabel setTextColor:[self settingsDetailColor]];
+			[weatherDescriptionLabel setText:weather];
+			[weatherDescriptionLabel sizeToFit];
 		} else {
-			settingsCity = settings[kRWCityKey];
+			temperatureLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,([backgroundWindow frame].size.height / 2.0)-55.0-16.0,backgroundWindow.bounds.size.width,55.0)];
+			[temperatureLabel setTextAlignment:NSTextAlignmentCenter];
+			[temperatureLabel setFont:[UIFont systemFontOfSize:44.0]];
+			[temperatureLabel setTextColor:[self settingsTitleColor]];
+			[temperatureLabel setText:temperature];
+
+			cityLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,temperatureLabel.frame.origin.y + temperatureLabel.frame.size.height + 4.0,temperatureLabel.frame.size.width,32.0)];
+			[cityLabel setTextAlignment:NSTextAlignmentCenter];
+			[cityLabel setFont:[UIFont systemFontOfSize:28.0]];
+			[cityLabel setTextColor:[self settingsTitleColor]];
+			[cityLabel setMinimumScaleFactor:0.50];
+			[cityLabel setAdjustsFontSizeToFitWidth:YES];
+			[cityLabel setText:settingsCity];
+
+			weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(cityLabel.frame.origin.x,cityLabel.frame.origin.y + cityLabel.frame.size.height + 4.0,temperatureLabel.frame.size.width,20.0)];
+			[weatherDescriptionLabel setTextAlignment:NSTextAlignmentCenter];
+			[weatherDescriptionLabel setNumberOfLines:0];
+			[weatherDescriptionLabel setFont:[UIFont systemFontOfSize:15.0]];
+			[weatherDescriptionLabel setTextColor:[self settingsDetailColor]];
+			[weatherDescriptionLabel setText:weather];
 		}
-
-		weatherDescriptionLabel = [[UILabel alloc] initWithFrame:CGRectMake(cityLabel.frame.origin.x,cityLabel.frame.origin.y + cityLabel.frame.size.height + 4.0,cityLabel.frame.size.width - temperatureLabel.frame.origin.x - temperatureLabel.frame.size.width,20.0)];
-		[weatherDescriptionLabel setTextAlignment:NSTextAlignmentLeft];
-		[weatherDescriptionLabel setNumberOfLines:0];
-		[weatherDescriptionLabel setFont:[UIFont systemFontOfSize:15.0]];
-		[weatherDescriptionLabel setTextColor:[self setDetailColor]];
-
-		[cityLabel setText:settingsCity];
-
-		[weatherDescriptionLabel setText:weather];
-		[weatherDescriptionLabel sizeToFit];
 
 		[weatherView addSubview:temperatureLabel];
 		[weatherView addSubview:cityLabel];
@@ -333,7 +377,7 @@
 
 -(UIView*)_createdForecastsView:(NSArray*)items {
 	UIView *containerView = [[UIView alloc] initWithFrame:[self forecastsContainerFrame]];
-	CGFloat heightOffset = 35.0; 
+	CGFloat heightOffset = 25.0; 
 	if (IS_IPHONE_5) {
 		heightOffset = 10.0;
 	}
@@ -347,9 +391,17 @@
 	} else {
 		count = @"3";
 	}
-	[forecastLabel setText:[NSString stringWithFormat:@"%@-Day Forecast",count]];
+
+	NSString *forecastTitle;
+	if ([count isEqualToString:@"3"]) {
+		forecastTitle = [self localizedStringWithKey:@"THREE_DAY_FORECAST"];
+	} else {
+		forecastTitle = [self localizedStringWithKey:@"FIVE_DAY_FORECAST"];
+	}
+
+	[forecastLabel setText:forecastTitle];
 	[forecastLabel setFont:[UIFont systemFontOfSize:24.0]];
-	[forecastLabel setTextColor:[self setDetailColor]];
+	[forecastLabel setTextColor:[self settingsTitleColor]];
 	[forecastLabel setTextAlignment:NSTextAlignmentCenter];
 	[containerView addSubview:forecastLabel];
 
@@ -427,15 +479,15 @@
 						    		NSString *curHigh;
 						    		NSString *curLow;
 
-						    		NSInteger highTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"day"] doubleValue]];
-									NSInteger lowTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"night"] doubleValue]];
+						    		NSInteger highTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"max"] doubleValue]];
+									NSInteger lowTemp = [self kelvinToLocalTemp:[dayData[@"temp"][@"min"] doubleValue]];
 
 									if (celsiusEnabled) {
-										curHigh = [NSString stringWithFormat:@"High: %ld\u00B0C",(long)highTemp];
-										curLow = [NSString stringWithFormat:@"Low: %ld\u00B0C",(long)lowTemp];
+										curHigh = [NSString stringWithFormat:@"%@: %ld\u00B0C",[self localizedStringWithKey:@"HIGH"],(long)highTemp];
+										curLow = [NSString stringWithFormat:@"%@: %ld\u00B0C",[self localizedStringWithKey:@"LOW"],(long)lowTemp];
 								    } else {
-										curHigh = [NSString stringWithFormat:@"High: %ld\u00B0F",(long)highTemp];
-										curLow = [NSString stringWithFormat:@"Low: %ld\u00B0F",(long)lowTemp];
+										curHigh = [NSString stringWithFormat:@"%@: %ld\u00B0F",[self localizedStringWithKey:@"HIGH"],(long)highTemp];
+										curLow = [NSString stringWithFormat:@"%@: %ld\u00B0F",[self localizedStringWithKey:@"LOW"],(long)lowTemp];
 								    }
 
 						    		[dataDictionary setObject:curHigh forKey:@"currentHigh"];
@@ -458,7 +510,6 @@
 				    			completionBlock(nil,error);
 				    		}
 				    	});
-				    	
 			    	} else {
 			    		dispatch_async(dispatch_get_main_queue(), ^(void){
 				    		completionBlock(nil,jsonError);
@@ -509,7 +560,7 @@
 				completionBlock(nil, error);
 			} else {
 				NSDictionary *userInfo = @{
-						  NSLocalizedDescriptionKey: NSLocalizedString(@"Unabled to fetch forecasts", nil),
+						  NSLocalizedDescriptionKey: NSLocalizedString(@"Unable to fetch forecasts", nil),
 						                          };
 				NSError *rwError = [NSError errorWithDomain:@"me.akeaswaran.reachweather.error"
                              code:404
@@ -568,8 +619,8 @@
 						NSNumber *pressure = [NSNumber numberWithDouble:[jsonDict[@"main"][@"pressure"] doubleValue]];
 						NSNumber *humidity = [NSNumber numberWithDouble:[jsonDict[@"main"][@"humidity"] doubleValue]];
 
-						NSString *curPressure = [NSString stringWithFormat:@"Pressure: %ld mb",(long)[pressure integerValue]];
-						NSString *curHumidity = [NSString stringWithFormat:@"Humidity: %ld%%",(long)[humidity integerValue]];
+						NSString *curPressure = [NSString stringWithFormat:@"%@: %ld mb",[self localizedStringWithKey:@"PRESSURE"],(long)[pressure integerValue]];
+						NSString *curHumidity = [NSString stringWithFormat:@"%@: %ld%%",[self localizedStringWithKey:@"HUMIDITY"],(long)[humidity integerValue]];
 
 						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity};
 						RWLog(@"RESULT DICT GOING TO CALLBACK: %@",resultDict);
@@ -636,7 +687,7 @@
     return [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/libactivator.dylib"];
 }
 
--(UIColor *)setTitleColor {
+-(UIColor *)settingsTitleColor {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsHex;
 	if (!settings[kRWTitleColorKey]) {
@@ -656,7 +707,7 @@
 	return setColor;
 }
 
--(UIColor *)setDetailColor {
+-(UIColor *)settingsDetailColor {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSString *settingsHex;
 	if (!settings[kRWDetailColorKey]) {
