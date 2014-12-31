@@ -469,7 +469,7 @@
 
 			NSString * BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/forecast/daily";
  
-		    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@&cnt=%@&mode=json",
+		    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@&cnt=%@&mode=json&type=accurate",
 		                                BASE_URL_STRING, [city stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],settingsLang,count];
 		    NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
 		    NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];
@@ -601,7 +601,7 @@
 
 	NSString * BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
-    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@",
+    NSString *weatherURLText = [NSString stringWithFormat:@"%@?q=%@&lang=%@&type=accurate&mode=json",
                                 BASE_URL_STRING, [city stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],settingsLang];
     NSURL *weatherURL = [NSURL URLWithString:weatherURLText];
     NSURLRequest *weatherRequest = [NSURLRequest requestWithURL:weatherURL];

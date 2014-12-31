@@ -21,10 +21,13 @@
 		<string>Reachability Control Manual</string>
 
 		<key>CITY</key>
-		<string>Ciudad</string>
+		<string>Nombre/Código de Ciudad</string>
+
+		<key>CITY_CODES</key>
+        <string>Códigos de Ciudad</string>
 
 		<key>YOUR_CITY</key>
-		<string>su ciudad</string>
+		<string>nombre/código de ciudad</string>
 
 		<key>CUSTOM_TITLE_COLOR</key>
 		<string>Color Título a Medida</string>

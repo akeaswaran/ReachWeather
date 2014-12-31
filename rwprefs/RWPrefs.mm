@@ -48,6 +48,18 @@
         [cityField setProperty:@(YES) forKey:@"enabled"];
         [cityField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
 
+        PSSpecifier *cityCodes = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CITY_CODES"]
+                                                              target:self
+                                                                 set:nil
+                                                                 get:nil
+                                                              detail:Nil
+                                                                cell:PSLinkCell
+                                                                edit:Nil];
+        cityCodes.name = [self localizedStringWithKey:@"CITY_CODES"];
+        cityCodes->action = @selector(openCityCodes);
+        [cityCodes setIdentifier:@"cityCodes"];
+        [cityCodes setProperty:@(YES) forKey:@"enabled"];
+
         PSSpecifier *mainColorSwitch = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CUSTOM_TITLE_COLOR"]
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
@@ -216,6 +228,7 @@
 
         [specifiers addObject:secondGroup];
         [specifiers addObject:cityField];
+        [specifiers addObject:cityCodes];
         [specifiers addObject:mainColorSwitch];
         [specifiers addObject:mainColorField];
         [specifiers addObject:infoColorSwitch];
@@ -315,6 +328,11 @@
 - (void)openHexColors
 {
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/mRs-/HexColors"]];
+}
+
+- (void)openCityCodes
+{
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://openweathermap.org/help/city_list.txt"]];
 }
 
 - (NSArray *)languageTitles {

@@ -21,10 +21,13 @@
     	<string>Manueller Einhandmodus</string>
 
     	<key>CITY</key>
-    	<string>Stadt</string>
+    	<string>Stadtname/code</string>
+
+        <key>CITY_CODES</key>
+        <string>Stadtcodes</string>
 
     	<key>YOUR_CITY</key>
-    	<string>Deine Stadt</string>
+    	<string>stadtname/code</string>
 
     	<key>CUSTOM_TITLE_COLOR</key>
     	<string>Eigene Titelfarbe</string>
