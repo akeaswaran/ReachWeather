@@ -81,6 +81,7 @@
         [infoColorField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeAllCharacters autoCorrection:UITextAutocorrectionTypeNo];
 
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"UI Options"];
+        [thirdGroup setProperty:[self localizedStringWithKey:@"WEATHER_IMAGES_DETAIL"] forKey:@"footerText"];
 
         PSSpecifier *centerEnabled = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"CENTER_WEATHER_VIEW"]
                                                               target:self
@@ -142,6 +143,16 @@
                                                                 edit:Nil];
         [celsius setIdentifier:kRWCelsiusEnabledKey];
         [celsius setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *weatherImages = [PSSpecifier preferenceSpecifierNamed:[self localizedStringWithKey:@"ENABLE_WEATHER_IMAGES"]
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [weatherImages setIdentifier:kRWWeatherImagesKey];
+        [weatherImages setProperty:@(YES) forKey:@"enabled"];
                
         PSSpecifier *fourthGroup = [PSSpecifier groupSpecifierWithName:[self localizedStringWithKey:@"LOCALIZATION"]];
 
@@ -217,6 +228,7 @@
         [specifiers addObject:forecastEnabled];
         [specifiers addObject:forecastType];
         [specifiers addObject:celsius];
+        [specifiers addObject:weatherImages];
 
         [specifiers addObject:fourthGroup];
         [specifiers addObject:language];

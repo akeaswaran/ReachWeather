@@ -102,5 +102,11 @@ Um genauere Daten zu erhalten, kannst du auch das zugehörige Land eintragen. Sc
 
         <key>CENTER_WEATHER_VIEW</key>
         <string>Zentrum Wetter Ansicht</string>
+
+        <key>ENABLE_WEATHER_IMAGES</key>
+        <string>Aktivieren Wetter Hintergründe</string>
+        
+        <key>WEATHER_IMAGES_DETAIL</key>
+        <string>Unterstützung für Wetterhinter ist experimentell. Nicht alle Bildkombinationen können gut aussehen.</string>
 	</dict>
 </plist>

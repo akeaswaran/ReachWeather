@@ -102,5 +102,11 @@
 
         <key>CENTER_WEATHER_VIEW</key>
         <string>Centro de Vista del Tiempo</string>
+
+        <key>ENABLE_WEATHER_IMAGES</key>
+        <string>Activado las Imágenes Ambientes del Tiempo</string>
+
+        <key>WEATHER_IMAGES_DETAIL</key>
+        <string>Apoyo para los ambientes climáticos es experimental. No todas las combinaciones de imágenes podrían quedar bien.</string>
 	</dict>
 </plist>

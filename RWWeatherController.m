@@ -75,6 +75,7 @@
 
 				pressureCondition = result[@"currentPressure"];
 				humidityCondition = result[@"currentHumidity"];
+				curIconCode = result[@"conditionCode"];
 
 			} else {
 				RWLog(@"ERROR: %@",error.localizedDescription);
@@ -90,6 +91,7 @@
 			    currentWeatherCondition = @"Error: unable to retreive current weather conditions.";
 				pressureCondition = @"Pressure: -- mb";
 				humidityCondition = @"Humidity: --%";
+				curIconCode = nil;
 			}
 
 
@@ -134,6 +136,8 @@
 	}
 
 	backgroundWindow = nil;
+	widgetBackgroundView = nil;
+	curIconCode = nil;
 
 	temperatureCondition = nil;
 	currentWeatherCondition = nil;
@@ -204,10 +208,26 @@
 }
 
 -(UIView*)_widgetContainerWithViews:(NSArray*)views {
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSNumber *weatherImgNum = settings[kRWWeatherImagesKey];
+	BOOL wiEnabled = weatherImgNum ? [weatherImgNum boolValue] : 0;
+
+	if (wiEnabled && curIconCode != nil) {
+		widgetBackgroundView = [self _weatherBitmapImageViewWithConditionCode:curIconCode fittingRect:backgroundWindow.bounds];
+	}
+
 	if (views.count == 1) {
-		return views[0];
+		if (curIconCode != nil) {
+			[widgetBackgroundView addSubview:views[0]];
+			return widgetBackgroundView;
+		} else {
+			return views[0];
+		}
 	} else {
 		widgetContainerView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
+		if (wiEnabled && curIconCode != nil) {
+			[widgetContainerView addSubview:widgetBackgroundView];
+		}
 		UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:widgetContainerView.frame];
 
 		for (int i = 0; i < views.count; i++) {
@@ -615,6 +635,7 @@
 
 						NSArray *conditions = jsonDict[@"weather"];
 						NSString *curCondition = conditions[0][@"description"];
+						NSString *iconCode = conditions[0][@"icon"];
 
 						NSNumber *pressure = [NSNumber numberWithDouble:[jsonDict[@"main"][@"pressure"] doubleValue]];
 						NSNumber *humidity = [NSNumber numberWithDouble:[jsonDict[@"main"][@"humidity"] doubleValue]];
@@ -622,7 +643,7 @@
 						NSString *curPressure = [NSString stringWithFormat:@"%@: %ld mb",[self localizedStringWithKey:@"PRESSURE"],(long)[pressure integerValue]];
 						NSString *curHumidity = [NSString stringWithFormat:@"%@: %ld%%",[self localizedStringWithKey:@"HUMIDITY"],(long)[humidity integerValue]];
 
-						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity};
+						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity, @"conditionCode" : iconCode};
 						RWLog(@"RESULT DICT GOING TO CALLBACK: %@",resultDict);
 
 			    		completionBlock(resultDict,nil);
@@ -725,6 +746,135 @@
 		setColor = [UIColor lightGrayColor];
 	}
 	return setColor;
+}
+
+//modified version of solution to translating CPBitmaps into UIImages from StackOverflow: http://stackoverflow.com/questions/22580485/how-to-convert-hex-data-to-uiimage/
+//UIImage cropping snippet from http://iosdevelopertips.com/graphics/how-to-crop-an-image.html
+
+-(UIImageView*)_weatherBitmapImageViewWithConditionCode:(NSString*)conditionCode fittingRect:(CGRect)rect {
+	NSString *imageName;
+	NSString *backgroundImageName;
+	if ([conditionCode isEqualToString:@"01d"]) { //sunny
+		imageName = @"Sun-Left";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"01n"]) {
+		imageName = nil;
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"02d"]) { //partly cloudy
+		imageName = @"Cirrus-One-Overlap";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"02n"]) {
+		imageName = @"Cirrus-One-Overlap";
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"03d"] || [conditionCode isEqualToString:@"04d"]) { //mostly cloudy
+		imageName = @"Cloud-Patch-One";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"03n"] || [conditionCode isEqualToString:@"04n"]) {
+		imageName = @"Cloud-Patch-One";
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"09d"]) { //showers
+		imageName = @"Cloud-Drizzle";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"09n"]) {
+		imageName = @"Cloud-Drizzle";
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"10d"]) { //rain
+		imageName = @"Raindrop-Tile-Heavy";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"10n"]) {
+		imageName = @"Raindrop-Tile-Heavy";
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"11d"]) { //thunderstorms
+		imageName = @"Thunderstorm-Main-Day";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"11n"]) {
+		imageName = @"Thunderstorm-Main-Night";
+		backgroundImageName = @"Background-Glow-Night";
+	} else if ([conditionCode isEqualToString:@"13d"]) { //snow
+		imageName = @"Wintery-Mix-Flake-7x7";
+		backgroundImageName = @"Background-Glow-Day";
+	} else if ([conditionCode isEqualToString:@"13n"]) {
+		imageName = @"Wintery-Mix-Flake-7x7";
+		backgroundImageName = @"Background-Glow-Night";
+	} else { //fog or mist
+		imageName = @"Cirrus-Three-Overlap";
+		if ([conditionCode isEqualToString:@"50d"]) {
+			backgroundImageName = @"Background-Glow-Day";
+		} else {
+			backgroundImageName = @"Background-Glow-Night";
+		}
+	}
+
+	RWLog(@"IMAGENAME: %@ BACKGROUNDIMAGENAME: %@",imageName,backgroundImageName);
+	UIImageView *bgView = [[UIImageView alloc] initWithImage:[self _bitmapImageForName:backgroundImageName inRect:rect]];
+	if ([conditionCode containsString:@"n"]) {
+		[bgView setBackgroundColor:[UIColor colorWithRed:0.09 green:0.10 blue:0.20 alpha:1.00]];
+	} else {
+		[bgView setBackgroundColor:[UIColor colorWithRed:0.20 green:0.57 blue:0.75 alpha:1.00]];
+	}
+	if (imageName != nil) {
+		UIImageView *weatherImg = [[UIImageView alloc] initWithImage:[self _bitmapImageForName:imageName inRect:rect]];
+		[weatherImg setBackgroundColor:[UIColor clearColor]];
+		[bgView addSubview:weatherImg];
+	}
+
+	return bgView;
+}
+
+-(UIImage*)_bitmapImageForName:(NSString*)imageName inRect:(CGRect)rect {
+	NSString *path = [kRWWeatherFrameworkPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.cpbitmap",imageName]];
+	NSData *data = [NSData dataWithContentsOfFile:path];
+	NSAssert(data, @"no data found");
+
+	UInt32 width;
+	UInt32 height;
+	[data getBytes:&width  range:NSMakeRange([data length] - sizeof(UInt32) * 5, sizeof(UInt32))];
+	[data getBytes:&height range:NSMakeRange([data length] - sizeof(UInt32) * 4, sizeof(UInt32))];
+
+	CGImageRef imageRef = CGImageCreateWithImageInRect([[self imageForBitmapData:data size:CGSizeMake(width, height)] CGImage], rect);
+	UIImage *img = [UIImage imageWithCGImage:imageRef]; 
+	CGImageRelease(imageRef);
+	return img;
+}
+
+- (UIImage*)imageForBitmapData:(NSData *)data size:(CGSize)size
+{
+    void *          bitmapData;
+    CGColorSpaceRef colorSpace        = CGColorSpaceCreateDeviceRGB();
+    int             bitmapBytesPerRow = (size.width * 4);
+    int             bitmapByteCount   = (bitmapBytesPerRow * size.height);
+
+    bitmapData = malloc( bitmapByteCount );
+    NSAssert(bitmapData, @"Unable to create buffer");
+
+    [data getBytes:bitmapData length:bitmapByteCount];
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, bitmapData, bitmapByteCount, releasePixels);
+
+    CGImageRef imageRef = CGImageCreate(size.width,
+                                        size.height,
+                                        8,
+                                        32,
+                                        bitmapBytesPerRow,
+                                        colorSpace,
+                                        (CGBitmapInfo)kCGImageAlphaLast,
+                                        provider,
+                                        NULL,
+                                        NO,
+                                        kCGRenderingIntentDefault);
+
+    UIImage *image = [UIImage imageWithCGImage:imageRef];
+
+    CGImageRelease(imageRef);
+    CGColorSpaceRelease(colorSpace);
+    CGDataProviderRelease(provider);
+
+    return image;
+}
+
+void releasePixels(void *info, const void *data, size_t size)
+{
+    free((void*)data);
 }
 
 //UIScrollViewDelegate

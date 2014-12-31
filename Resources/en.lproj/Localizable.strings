@@ -99,5 +99,11 @@ You can even include your country as well for more accurate weather data! After 
 
         <key>CENTER_WEATHER_VIEW</key>
         <string>Center Weather View</string>
+
+        <key>ENABLE_WEATHER_IMAGES</key>
+        <string>Enable Weather Backgrounds</string>
+
+        <key>WEATHER_IMAGES_DETAIL</key>
+        <string>Support for weather backgrounds is experimental. Not all image combinations may look good.</string>
 	</dict>
 </plist>

@@ -120,22 +120,22 @@
 	NSString *imageName;
 	RWLog(@"CONDITION CODE: %@",_conditionCode);
 
-	if ([_conditionCode isEqualToString:@"01d"] || [_conditionCode isEqualToString:@"01n"]) {
+	if ([_conditionCode isEqualToString:@"01d"] || [_conditionCode isEqualToString:@"01n"]) { //sunny
 		imageName = @"mostly-sunny";
-	} else if ([_conditionCode isEqualToString:@"02d"] || [_conditionCode isEqualToString:@"02n"]) {
+	} else if ([_conditionCode isEqualToString:@"02d"] || [_conditionCode isEqualToString:@"02n"]) { //partly cloudy
 		imageName = @"partly-cloudy";
-	} else if ([_conditionCode isEqualToString:@"03d"] || [_conditionCode isEqualToString:@"03n"] || [_conditionCode isEqualToString:@"04d"] || [_conditionCode isEqualToString:@"04n"]) {
+	} else if ([_conditionCode isEqualToString:@"03d"] || [_conditionCode isEqualToString:@"03n"] || [_conditionCode isEqualToString:@"04d"] || [_conditionCode isEqualToString:@"04n"]) { //mostly cloudy
 		imageName = @"mostly-cloudy";
-	} else if ([_conditionCode isEqualToString:@"09d"] || [_conditionCode isEqualToString:@"09n"]) {
+	} else if ([_conditionCode isEqualToString:@"09d"] || [_conditionCode isEqualToString:@"09n"]) { //showers
 		imageName = @"showers";
-	} else if ([_conditionCode isEqualToString:@"10d"] || [_conditionCode isEqualToString:@"10n"]) {
+	} else if ([_conditionCode isEqualToString:@"10d"] || [_conditionCode isEqualToString:@"10n"]) { //rain
 		imageName = @"rain";
-	} else if ([_conditionCode isEqualToString:@"11d"] || [_conditionCode isEqualToString:@"11n"]) {
+	} else if ([_conditionCode isEqualToString:@"11d"] || [_conditionCode isEqualToString:@"11n"]) { //thunderstorms
 		imageName = @"storm";
-	} else if ([_conditionCode isEqualToString:@"13d"] || [_conditionCode isEqualToString:@"13n"]) {
+	} else if ([_conditionCode isEqualToString:@"13d"] || [_conditionCode isEqualToString:@"13n"]) { //snow
 		imageName = @"snow";
 	} else {
-		imageName = @"foggy";
+		imageName = @"foggy"; //fog
 	}
 
 	NSString *imagePath = [kRWBundlePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.png",imageName]];
