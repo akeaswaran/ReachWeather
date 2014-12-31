@@ -76,7 +76,7 @@
 				pressureCondition = result[@"currentPressure"];
 				humidityCondition = result[@"currentHumidity"];
 				curIconCode = result[@"conditionCode"];
-
+				curCity = result[@"curCity"];
 			} else {
 				RWLog(@"ERROR: %@",error.localizedDescription);
 				if (celsiusEnabled) {
@@ -92,6 +92,7 @@
 				pressureCondition = @"Pressure: -- mb";
 				humidityCondition = @"Humidity: --%";
 				curIconCode = nil;
+				curCity = settingsCity;
 			}
 
 
@@ -101,15 +102,15 @@
 					[loadingSpinner removeFromSuperview];
 					if (!error && results) {
 						forecasts = results;
-						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]];
+						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]];
 					} else {
-						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
+						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
 					}
 				}];
 			} else {
 				[loadingSpinner stopAnimating];
 				[loadingSpinner removeFromSuperview];
-				[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
+				[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
 			}
 
 			if(mcEnabled) {
@@ -121,18 +122,18 @@
 }
 
 -(void)deconstructWidget {
-	if ([self _createdWeatherViewWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]) {
-		[[self _createdWeatherViewWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition] removeFromSuperview];
+	if ([self _createdWeatherViewWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition]) {
+		[[self _createdWeatherViewWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition] removeFromSuperview];
 	}
 
-	if ([self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]) {
+	if ([self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]) {
 
-		[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil];
+		[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil];
 	}
 
-	if ([self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]) {
+	if ([self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]) {
 
-		[self _createdFullFeaturedWidgetWithCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts];
+		[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts];
 	}
 
 	backgroundWindow = nil;
@@ -167,7 +168,7 @@
 }
 
 //UI creation
--(UIView*)_createdFullFeaturedWidgetWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature highTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity forecasts:(NSArray*)items {
+-(UIView*)_createdFullFeaturedWidgetWithCity:(NSString*)city withCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature highTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity forecasts:(NSArray*)items {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	NSNumber *enabledNum = settings[kRWEnabledKey];
 	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
@@ -188,7 +189,7 @@
 			[widgets addObject:[self _createdClockView]];
 		}
 
-		[widgets addObject:[self _createdWeatherViewWithCurrentWeather:weather currentTemperature:temperature]];
+		[widgets addObject:[self _createdWeatherViewWithCity:city withCurrentWeather:weather currentTemperature:temperature]];
 
 		if (detailEnabled) {
 			[widgets addObject:[self _createdDetailedViewWithHighTemp:highTemp lowTemp:lowTemp pressure:pressure humidity:humidity]];
@@ -319,7 +320,7 @@
 	return detailedView;
 }
 
--(UIView*)_createdWeatherViewWithCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {
+-(UIView*)_createdWeatherViewWithCity:(NSString*)city withCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 
 	NSNumber *enabledNum = settings[kRWEnabledKey];
@@ -329,12 +330,7 @@
 	BOOL centered = centerNum ? [centerNum boolValue] : 0;
 
 
-	NSString *settingsCity;
-	if (!settings[kRWCityKey]) {
-		settingsCity = @"New York";
-	} else {
-		settingsCity = settings[kRWCityKey];
-	}
+	NSString *settingsCity = city;
 
 	if (enabledNum && tweakEnabled) {
 		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
@@ -633,6 +629,8 @@
 							temp = [NSString stringWithFormat:@"%ld\u00B0F",(long)tempCurrent];
 					    }
 
+					    NSString *city = jsonDict[@"name"];
+
 						NSArray *conditions = jsonDict[@"weather"];
 						NSString *curCondition = conditions[0][@"description"];
 						NSString *iconCode = conditions[0][@"icon"];
@@ -643,7 +641,7 @@
 						NSString *curPressure = [NSString stringWithFormat:@"%@: %ld mb",[self localizedStringWithKey:@"PRESSURE"],(long)[pressure integerValue]];
 						NSString *curHumidity = [NSString stringWithFormat:@"%@: %ld%%",[self localizedStringWithKey:@"HUMIDITY"],(long)[humidity integerValue]];
 
-						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity, @"conditionCode" : iconCode};
+						NSDictionary *resultDict = @{@"currentTemp": temp, @"currentWeather" : curCondition, @"currentPressure" : curPressure, @"currentHumidity" : curHumidity, @"conditionCode" : iconCode, @"curCity" : city};
 						RWLog(@"RESULT DICT GOING TO CALLBACK: %@",resultDict);
 
 			    		completionBlock(resultDict,nil);

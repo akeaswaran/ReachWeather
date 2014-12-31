@@ -19,6 +19,7 @@ typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 	NSString *lowTempCondition;
 	NSString *pressureCondition;
 	NSString *humidityCondition;
+	NSString *curCity;
 
 	UILabel *cityLabel;
 	UILabel *temperatureLabel;
