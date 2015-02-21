@@ -1,17 +1,18 @@
 //RWWeatherController.h
 
 #import <UIKit/UIKit.h>
+#import <CoreLocation/CoreLocation.h>
 #import "Headers.h"
 
 typedef void (^RWWeatherCompletionBlock)(NSDictionary *result, NSError *error);
 typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 
-@interface RWWeatherController : UIViewController <UIScrollViewDelegate> {
+@interface RWWeatherController : UIViewController <UIScrollViewDelegate, CLLocationManagerDelegate> {
 	SBWindow *backgroundWindow;
 	UIImageView *widgetBackgroundView;
-	NSString *curIconCode;
 	UIView *widgetContainerView;
 	NSMutableArray *widgets;
+	UIActivityIndicatorView *loadingSpinner;
 
 	NSString *currentWeatherCondition;
 	NSString *temperatureCondition;
@@ -20,6 +21,7 @@ typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 	NSString *pressureCondition;
 	NSString *humidityCondition;
 	NSString *curCity;
+	NSString *curIconCode;
 
 	UILabel *cityLabel;
 	UILabel *temperatureLabel;
@@ -35,6 +37,9 @@ typedef void (^RWForecastCompletionBlock)(NSArray *results, NSError *error);
 	NSTimer *dateTimer;
 
 	NSArray *forecasts;
+
+	CLLocationManager *locationManager;
+	BOOL isUpdating;
 }
 
 + (instancetype)sharedInstance;

@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>ReachWeather detects your current location to deliver the most accurate weather results possible.</string>
+	<key>com.apple.locationd.preauthorized</key>
+	<true/>
 </dict>
 </plist>

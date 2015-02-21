@@ -3,7 +3,8 @@
 #import "RWForecast.h"
 #import "HexColor.h"
 #import <QuartzCore/QuartzCore.h>
-#import <objc/runtime.h>
+#import <Weather/WeatherUpdateController.h>
+#import <Weather/City.h>
 
 @implementation RWWeatherController
 
@@ -23,11 +24,17 @@
   return [tweakBundle localizedStringForKey:key value:@"" table:nil];
 }
 
+-(BOOL)settingForKey:(NSString*)key {
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
+	NSNumber *curLocNum = settings[key];
+	return curLocNum ? [curLocNum boolValue] : 0;
+}
+
 -(void)activateWidgetArea {
-	if (![[objc_getClass("SBReachabilityManager") sharedInstance] reachabilityModeActive]) {
-		[[objc_getClass("SBReachabilityManager") sharedInstance] _handleReachabilityActivated];
+	if (![[NSClassFromString(@"SBReachabilityManager") sharedInstance] reachabilityModeActive]) {
+		[[NSClassFromString(@"SBReachabilityManager") sharedInstance] _handleReachabilityActivated];
 	} else {
-		[[objc_getClass("SBReachabilityManager") sharedInstance] _handleReachabilityDeactivated];
+		[[NSClassFromString(@"SBReachabilityManager") sharedInstance] _handleReachabilityDeactivated];
 	}
 }
 
@@ -38,86 +45,78 @@
 }
 
 -(void)setupWidget {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
-
-	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
-
-	NSNumber *manualControlNum = settings[kRWManualControlKey];
-	BOOL mcEnabled = manualControlNum ? [manualControlNum boolValue] : 0;
-
-	NSNumber *forecastNum = settings[kRWForecastViewKey];
-	BOOL fcEnabled = forecastNum ? [forecastNum boolValue] : 0;
+	BOOL tweakEnabled = [self settingForKey:kRWEnabledKey];
+	BOOL celsiusEnabled = [self settingForKey:kRWCelsiusEnabledKey];
+	BOOL mcEnabled = [self settingForKey:kRWManualControlKey];
+	BOOL fcEnabled = [self settingForKey:kRWForecastViewKey];
 
 	NSString *settingsCity;
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
 	if (!settings[kRWCityKey]) {
 		settingsCity = @"New York";
 	} else {
 		settingsCity = settings[kRWCityKey];
 	}
 
+	if (tweakEnabled && backgroundWindow) {
+			loadingSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+			loadingSpinner.frame = CGRectMake((backgroundWindow.bounds.size.width / 2.0) - (loadingSpinner.frame.size.width / 2.0), (backgroundWindow.bounds.size.height / 2.0) - (loadingSpinner.frame.size.height / 2.0), loadingSpinner.frame.size.width,loadingSpinner.frame.size.height);
+			[loadingSpinner startAnimating];
+			[backgroundWindow addSubview:loadingSpinner];
+			[self _fetchDetailedWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
+				if (!error) {
+				   	temperatureCondition = result[@"currentTemp"];
 
-	if (enabledNum && tweakEnabled && backgroundWindow) {
-		UIActivityIndicatorView *loadingSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-		loadingSpinner.frame = CGRectMake((backgroundWindow.bounds.size.width / 2.0) - (loadingSpinner.frame.size.width / 2.0), (backgroundWindow.bounds.size.height / 2.0) - (loadingSpinner.frame.size.height / 2.0), loadingSpinner.frame.size.width,loadingSpinner.frame.size.height);
-		[loadingSpinner startAnimating];
-		[backgroundWindow addSubview:loadingSpinner];
-		[self _fetchDetailedWeatherForCityNamed:[settingsCity stringByReplacingOccurrencesOfString:@" " withString:@"+"] completion:^(NSDictionary *result, NSError *error) {
-			if (!error) {
-			   	temperatureCondition = result[@"currentTemp"];
+					currentWeatherCondition = result[@"currentWeather"];
 
-				currentWeatherCondition = result[@"currentWeather"];
+					highTempCondition = result[@"currentHigh"];
+					lowTempCondition = result[@"currentLow"];
 
-				highTempCondition = result[@"currentHigh"];
-				lowTempCondition = result[@"currentLow"];
-
-				pressureCondition = result[@"currentPressure"];
-				humidityCondition = result[@"currentHumidity"];
-				curIconCode = result[@"conditionCode"];
-				curCity = result[@"curCity"];
-			} else {
-				RWLog(@"ERROR: %@",error.localizedDescription);
-				if (celsiusEnabled) {
-					temperatureCondition = @"--\u00B0C";
-					highTempCondition = @"High: --\u00B0C";
-					lowTempCondition = @"Low: --\u00B0C";
-			    } else {
-					temperatureCondition = @"--\u00B0F";
-					highTempCondition = @"High: --\u00B0F";
-					lowTempCondition = @"Low: --\u00B0F";
-			    }
-			    currentWeatherCondition = @"Error: unable to retreive current weather conditions.";
-				pressureCondition = @"Pressure: -- mb";
-				humidityCondition = @"Humidity: --%";
-				curIconCode = nil;
-				curCity = settingsCity;
-			}
+					pressureCondition = result[@"currentPressure"];
+					humidityCondition = result[@"currentHumidity"];
+					curIconCode = result[@"conditionCode"];
+					curCity = result[@"curCity"];
+				} else {
+					RWLog(@"ERROR: %@",error.localizedDescription);
+					if (celsiusEnabled) {
+						temperatureCondition = @"--\u00B0C";
+						highTempCondition = @"High: --\u00B0C";
+						lowTempCondition = @"Low: --\u00B0C";
+				    } else {
+						temperatureCondition = @"--\u00B0F";
+						highTempCondition = @"High: --\u00B0F";
+						lowTempCondition = @"Low: --\u00B0F";
+				    }
+				    currentWeatherCondition = @"Error: unable to retreive current weather conditions.";
+					pressureCondition = @"Pressure: -- mb";
+					humidityCondition = @"Humidity: --%";
+					curIconCode = nil;
+					curCity = settingsCity;
+				}
 
 
-			if (fcEnabled) {
-				[self _fetchForecastsForCity:settingsCity completion:^(NSArray *results, NSError *error) {
+				if (fcEnabled) {
+					[self _fetchForecastsForCity:settingsCity completion:^(NSArray *results, NSError *error) {
+						[loadingSpinner stopAnimating];
+						[loadingSpinner removeFromSuperview];
+						if (!error && results) {
+							forecasts = results;
+							[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]];
+						} else {
+							[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
+						}
+					}];
+				} else {
 					[loadingSpinner stopAnimating];
 					[loadingSpinner removeFromSuperview];
-					if (!error && results) {
-						forecasts = results;
-						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:forecasts]];
-					} else {
-						[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
-					}
-				}];
-			} else {
-				[loadingSpinner stopAnimating];
-				[loadingSpinner removeFromSuperview];
-				[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
-			}
+					[backgroundWindow addSubview:[self _createdFullFeaturedWidgetWithCity:curCity withCurrentWeather:currentWeatherCondition currentTemperature:temperatureCondition highTemp:highTempCondition lowTemp:lowTempCondition pressure:pressureCondition humidity:humidityCondition forecasts:nil]];
+				}
 
-			if(mcEnabled) {
-				RWLog(@"MANUAL CONTROL ACTIVATED");
-				[[objc_getClass("SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
-			}
-		}];
+				if(mcEnabled) {
+					RWLog(@"MANUAL CONTROL ACTIVATED");
+					[[NSClassFromString(@"SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
+				}
+			}];
 	}
 }
 
@@ -165,22 +164,15 @@
 	}
 
 	forecasts = nil;
+	locationManager = nil;
 }
 
 //UI creation
 -(UIView*)_createdFullFeaturedWidgetWithCity:(NSString*)city withCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature highTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity forecasts:(NSArray*)items {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
-
-	NSNumber *clockNum = settings[kRWClockViewKey];
-	BOOL clockEnabled = clockNum ? [clockNum boolValue] : 0;
-
-	NSNumber *detailNum = settings[kRWDetailedViewKey];
-	BOOL detailEnabled = detailNum ? [detailNum boolValue] : 0;
-
-	NSNumber *forecastNum = settings[kRWForecastViewKey];
-	BOOL fcEnabled = forecastNum ? [forecastNum boolValue] : 0;
+	BOOL tweakEnabled = [self settingForKey:kRWEnabledKey];
+	BOOL fcEnabled = [self settingForKey:kRWForecastViewKey];
+	BOOL clockEnabled = [self settingForKey:kRWClockViewKey];
+	BOOL detailEnabled = [self settingForKey:kRWDetailedViewKey];
 
 	widgets = [NSMutableArray array];
 	if (tweakEnabled) {
@@ -203,15 +195,10 @@
 	} else {
 		return nil;
 	}
-
-	
-
 }
 
 -(UIView*)_widgetContainerWithViews:(NSArray*)views {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-	NSNumber *weatherImgNum = settings[kRWWeatherImagesKey];
-	BOOL wiEnabled = weatherImgNum ? [weatherImgNum boolValue] : 0;
+	BOOL wiEnabled = [self settingForKey:kRWWeatherImagesKey];
 
 	if (wiEnabled && curIconCode != nil) {
 		widgetBackgroundView = [self _weatherBitmapImageViewWithConditionCode:curIconCode fittingRect:backgroundWindow.bounds];
@@ -276,11 +263,7 @@
 
 -(UIView*)_createdDetailedViewWithHighTemp:(NSString*)highTemp lowTemp:(NSString*)lowTemp pressure:(NSString*)pressure humidity:(NSString*)humidity {
 	UIView *detailedView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
-
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-
-	NSNumber *centerNum = settings[kRWCenterMainViewKey];
-	BOOL centered = centerNum ? [centerNum boolValue] : 0;
+	BOOL centered = [self settingForKey:kRWWeatherImagesKey];
 
 	if (!centered) {
 		highLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,cityLabel.frame.origin.y - 25.0,detailedView.frame.size.width,25.0)];
@@ -320,19 +303,13 @@
 	return detailedView;
 }
 
--(UIView*)_createdWeatherViewWithCity:(NSString*)city withCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-
-	NSNumber *enabledNum = settings[kRWEnabledKey];
-	BOOL tweakEnabled = enabledNum ? [enabledNum boolValue] : 0;
-
-	NSNumber *centerNum = settings[kRWCenterMainViewKey];
-	BOOL centered = centerNum ? [centerNum boolValue] : 0;
-
+-(UIView*)_createdWeatherViewWithCity:(NSString*)city withCurrentWeather:(NSString*)weather currentTemperature:(NSString*)temperature {	
+	BOOL tweakEnabled = [self settingForKey:kRWEnabledKey];
+	BOOL centered = [self settingForKey:kRWWeatherImagesKey];
 
 	NSString *settingsCity = city;
 
-	if (enabledNum && tweakEnabled) {
+	if (tweakEnabled) {
 		UIView *weatherView = [[UIView alloc] initWithFrame:backgroundWindow.bounds];
 
 		if (!centered) {
@@ -456,8 +433,7 @@
 		settingsCity = settings[kRWCityKey];
 	}
 
-	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
+	BOOL celsiusEnabled = [self settingForKey:kRWCelsiusEnabledKey];
 
 	NSMutableDictionary *dataDictionary = [[NSMutableDictionary alloc] init];
 
@@ -596,8 +572,7 @@
 		settingsLang = settings[kRWLanguageKey];
 	}
 
-	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
+	BOOL celsiusEnabled = [self settingForKey:kRWCelsiusEnabledKey];
 
 	NSString * BASE_URL_STRING = @"http://api.openweathermap.org/data/2.5/weather";
  
@@ -672,9 +647,7 @@
 
 - (NSInteger)kelvinToLocalTemp:(CGFloat)degreesKelvin
 {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-	NSNumber *celsiusNum = settings[kRWCelsiusEnabledKey];
-	BOOL celsiusEnabled = celsiusNum ? [celsiusNum boolValue] : 0;
+	BOOL celsiusEnabled = [self settingForKey:kRWCelsiusEnabledKey];
 
 	NSNumber *temp;
     if (!celsiusEnabled) {
@@ -715,8 +688,7 @@
 		settingsHex = settings[kRWTitleColorKey];
 	}
 
-	NSNumber *titleColorNum = settings[kRWTitleColorSwitchKey];
-	BOOL tcEnabled = titleColorNum ? [titleColorNum boolValue] : 0;
+	BOOL tcEnabled = [self settingForKey:kRWTitleColorSwitchKey];
 	UIColor *setColor;
 	if (tcEnabled) {
 		setColor = [HXColor colorWithHexString:settingsHex];
@@ -735,8 +707,7 @@
 		settingsHex = settings[kRWDetailColorKey];
 	}
 
-	NSNumber *titleColorNum = settings[kRWDetailColorSwitchKey];
-	BOOL tcEnabled = titleColorNum ? [titleColorNum boolValue] : 0;
+	BOOL tcEnabled = [self settingForKey:kRWDetailColorSwitchKey];
 	UIColor *setColor;
 	if (tcEnabled) {
 		setColor = [HXColor colorWithHexString:settingsHex];
@@ -883,15 +854,13 @@ void releasePixels(void *info, const void *data, size_t size)
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kRWSettingsPath];
-	NSNumber *manualControlNum = settings[kRWManualControlKey];
-	BOOL mcEnabled = manualControlNum ? [manualControlNum boolValue] : 0;
+	BOOL mcEnabled = [self settingForKey:kRWManualControlKey];
 	if (!mcEnabled) {
 		RWLog(@"AUTO CONTROL ACTIVE");
-		[[objc_getClass("SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
+		[[NSClassFromString(@"SBReachabilityManager") sharedInstance] _setKeepAliveTimerForDuration:2.0];
 	} else {
 		RWLog(@"MANUAL CONTROL ACTIVE");
-		[[objc_getClass("SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
+		[[NSClassFromString(@"SBReachabilityManager") sharedInstance] disableExpirationTimerForInteraction];
 	}
 }
 
