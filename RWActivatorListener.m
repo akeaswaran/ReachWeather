@@ -7,7 +7,7 @@
 +(instancetype)sharedListener {
 	static dispatch_once_t pred;
 	static RWActivatorListener *shared = nil;
-	 
+
 	dispatch_once(&pred, ^{
 		shared = [[RWActivatorListener alloc] init];
 	});
@@ -31,7 +31,11 @@
 }
 
 - (id)activator:(LAActivator *)activator requiresInfoDictionaryValueOfKey:(NSString *)key forListenerWithName:(NSString *)listenerName {
-	return [NSNumber numberWithBool:YES]; // HAX so it can send raw events. <3 rpetrich
+	if ([key isEqualToString:@"receives-raw-events"]) {
+		return [NSNumber numberWithBool:YES]; // HAX so it can send raw events. <3 rpetrich
+	} else {
+		return [NSNumber numberWithBool:NO];
+	}
 }
 
 @end
